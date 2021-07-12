@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MemeFinder</string>
+    <string name="preference_file_key">images</string>
+</resources>
