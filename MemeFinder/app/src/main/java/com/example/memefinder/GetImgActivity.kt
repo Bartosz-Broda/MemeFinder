@@ -14,6 +14,9 @@ import android.os.Parcelable
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Size
+import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
@@ -22,6 +25,7 @@ import com.google.gson.Gson
 
 class GetImgActivity : AppCompatActivity() {
     internal var SPLASH_TIME_OUT = 800
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +49,12 @@ class GetImgActivity : AppCompatActivity() {
         )
     }
 
+    //TODO: PROCENTY MAJA SIE LICZYC!
+
+    //val progressBar = findViewById<ProgressBar>(R.id.progressBar)!!
+    //val loadingTextView = findViewById<TextView>(R.id.loadingPercentage)!!
+
+
     private fun requestPermission() {
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 6036)
     }
@@ -54,23 +64,14 @@ class GetImgActivity : AppCompatActivity() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
-    //assigns loaded data to imagesList and puts it in the parcelable for Main Activity
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun loadAllImages(){
-        var imagesList = queryImageStorage()
-        var intent = Intent(applicationContext, MainActivity::class.java)
-        intent.putParcelableArrayListExtra("images", imagesList as java.util.ArrayList<out Parcelable>)
-        startActivity(intent)
-        //Log.d(TAG, "loadAllImages: $imagesList")
-    }
-
     //Function for fetching all the data and creating Image objects, which are returned in a list.
     //I will pass them to the main activity and show on the screen
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun queryImageStorage(): MutableList<Image> {
-        val sharedPref = this.getSharedPreferences(
-            getString(R.string.preference_file_key), Context.MODE_PRIVATE)
-        val list: MutableList<Image> = ArrayList()
+    private fun queryImageStorage() {
+        //progressBar.visibility = View.VISIBLE
+        //progressBar2.visibility = View.VISIBLE
+        var imageNumber = 0
+        val list = readListFromPref(this)
 
         val imageProjection = arrayOf(
             MediaStore.Images.Media.DISPLAY_NAME,
@@ -90,6 +91,8 @@ class GetImgActivity : AppCompatActivity() {
         )
 
         cursor.use {
+            val imagesAmount = cursor?.count
+            //Log.d(TAG, "queryImageStorage: $x")
             it?.let {
                 val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
                 val nameColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
@@ -106,30 +109,25 @@ class GetImgActivity : AppCompatActivity() {
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                         id
                     ).toString()
-                    // make image object and add to list
-                    var image = Image(id, name, size, date, contentUri)
-                    list.add(image)
-                    //Log.d("HEEEE", "KURDEE $list")
+                    // make image object and add to list if it's not there yet.
+                    val image = Image(id, name, size, date, contentUri)
+                    if (!list.contains(image)){
+                        list.add(image)
+                        Log.d("HEEEE", "KURDEE $list")
+                        writeListToPref(this, list as java.util.ArrayList<Image>)
+                    }
+                    imageNumber += 1
+                    Log.d(TAG, "queryImageStorage: $imageNumber")
 
-                    //TODO: Wykorzystać sharedPreferences zamiast tego. Mozna zrobic listener i bedzie ladnie plynnie ogarniac
-                    writeListToPref(this, list as java.util.ArrayList<Image>)
-                    //var listInString = Gson().toJson(list)
-                    //sharedPref.edit().putString(R.string.preference_file_key.toString(), listInString).apply()
-                    //if(list.size > 3000){
-                     //   var intent = Intent(applicationContext, MainActivity::class.java)
-                      //  intent.putParcelableArrayListExtra("images", list as java.util.ArrayList<out Parcelable>)
-                     //   startActivity(intent)
-                   // }
-                    // generate the thumbnail -> will be moved somewhere else
-                    //val thumbnail = (this as Context).contentResolver.loadThumbnail(contentUri, Size(480, 480), null)
+                    //TODO: Działa sharedpreferences. Przy 1 uruchomienu laduje wszystko, przy kolejnych tylko nowe zdjecia. Do zrobienia Listener zeby działało płynnie.
 
                 }
             } ?: kotlin.run {
                 Log.e("TAG", "Cursor is null!")
             }
-            var intent = Intent(applicationContext, MainActivity::class.java)
+            val intent = Intent(applicationContext, MainActivity::class.java)
             startActivity(intent)
+            finish()
         }
-        return list
     }
 }
