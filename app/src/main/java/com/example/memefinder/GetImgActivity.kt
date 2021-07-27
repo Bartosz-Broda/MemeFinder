@@ -15,12 +15,19 @@ import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizerOptions
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.IOException
 
 class GetImgActivity : AppCompatActivity() {
     internal var TIME_OUT = 800
@@ -35,9 +42,7 @@ class GetImgActivity : AppCompatActivity() {
         // if not ask user for access to external storage.
         if (!checkSelfPermission()) {
             requestPermission()
-            val intent = intent
-            finish()
-            startActivity(intent)
+
         } else {
             // if permission granted, read images from storage.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -59,6 +64,26 @@ class GetImgActivity : AppCompatActivity() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when (requestCode) {
+            6036 -> {
+                if (grantResults.isNotEmpty()) {
+                    val permissionGranted = grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    if (permissionGranted) {
+                        // Now we are ready to access device storage and read images stored on device.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            initUI()
+                            Thread{queryImageStorage()}.start()
+                        }
+                    } else {
+                        Toast.makeText(this, "Permission Denied! Cannot load images.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
     //Function for fetching all the data and creating Image objects, which are returned in a list.
     //I will pass them to the main activity and show on the screen
     @SuppressLint("SetTextI18n")
@@ -66,7 +91,10 @@ class GetImgActivity : AppCompatActivity() {
     private fun queryImageStorage() {
             var imageNumber = 0
             var percentageloaded = 0
-            val list = readListFromPref(this)
+            val list = readListFromPref(this, R.string.preference_file_key.toString())
+            Log.d(TAG, "queryImageStorage: ROZMIAR ${list.size}")
+
+            val newList: ArrayList<Image> = ArrayList()
 
             val imageProjection = arrayOf(
                 MediaStore.Images.Media.DISPLAY_NAME,
@@ -105,14 +133,20 @@ class GetImgActivity : AppCompatActivity() {
                             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                             id
                         ).toString()
-                        // make image object and add to list if it's not there yet.
-                        val image = Image(id, name, size, date, contentUri)
-                        if (!list.contains(image)) {
-                            list.add(image)
-                            Log.d("HEEEE", "KURDEE $list")
-                            writeListToPref(this, list)
+
+                        // make image object and add to list if it's not there already.
+                        //TODO: Dodac skanowanie obrazów z unused stuff
+                        if (!list.any { Image -> Image.id == id }) {
+
+                            val image = Image(id, name, size, date, contentUri)
+                            newList.add(image)
+                            Log.d("HEEEE", "KURDEE $newList")
+                            writeListToPref(this, newList, R.string.preference_file_key.toString())
+
                         }
+
                         imageNumber += 1
+
                         //Updating textview with percentage
                         if (imagesAmount != null) {
                             percentageloaded = (imageNumber *100/ imagesAmount)
@@ -126,9 +160,7 @@ class GetImgActivity : AppCompatActivity() {
                         } catch (e: InterruptedException) {
                             e.printStackTrace()
                         }
-
                         //Log.d(TAG, "queryImageStorage: $imageNumber")
-
                         //TODO: Działa sharedpreferences. Przy 1 uruchomienu laduje wszystko, przy kolejnych tylko nowe zdjecia. Do zrobienia Listener zeby działało płynnie.
                     }
 

@@ -8,6 +8,11 @@ import android.widget.AdapterView.OnItemClickListener
 import android.widget.GridView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizerOptions
+import java.io.IOException
 
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -16,7 +21,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val list = readListFromPref(this)
+        val list = readListFromPref(this, R.string.preference_file_key.toString())
         Log.d(TAG, "onCreate: JESSS $list")
         Log.d(TAG, "onCreate: JESE ${list.size}" )
 
@@ -32,11 +37,37 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                 ).show()
             }
 
+        //scanForMemes("PTASZNIK")
 
     }
 
 
+    fun scanForMemes(text: String){
+        val list = readListFromPref(this, R.string.preference_file_key.toString())
+        //creating input image from uri
+        for (item in list) {
+            val inputImage: InputImage
+            try {
+                inputImage = item.uri?.let { InputImage.fromFilePath(this, it.toUri()) }!!
+                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                val result = recognizer.process(inputImage)
+                    .addOnSuccessListener { visionText ->
+                        // Task completed successfully
+                        if (visionText.toString().contains(text)){
+                            Log.d(TAG, "scanForMemes: BEKA $visionText")
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        // Task failed with an exception
+                        Log.d(TAG, "scanForMemes: $e")
+                    }
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
 
+
+        }
+    }
 
 
 
@@ -51,7 +82,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         when (key){
             getString(R.string.preference_file_key) -> {
-                val list = readListFromPref(this)
+                val list = readListFromPref(this, R.string.preference_file_key.toString())
                 Log.d(TAG, "onCreate: JESTT $list")
             }
         }

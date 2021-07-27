@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">MemeFinder</string>
     <string name="preference_file_key">images</string>
+    <string name="preference_newList_key">newImages</string>
     <string name="loading_images">Loading images:</string>
     <string name="loadingstring">loading images</string>
 </resources>
