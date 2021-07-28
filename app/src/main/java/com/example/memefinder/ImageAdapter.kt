@@ -16,7 +16,7 @@ import androidx.core.net.toUri
 import com.bumptech.glide.Glide
 
 
-class ImageAdapter(val context: Context, val imageList: ArrayList<Image> = readListFromPref(context, com.example.memefinder.R.string.preference_file_key.toString())): BaseAdapter() {
+class ImageAdapter(private val context: Context, private val imageList: ArrayList<Image> = readListFromPref(context, com.example.memefinder.R.string.preference_file_key.toString())): BaseAdapter() {
     override fun getCount(): Int {
         return imageList.count()
     }

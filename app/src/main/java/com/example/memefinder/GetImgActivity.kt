@@ -3,6 +3,7 @@ package com.example.memefinder
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -91,10 +92,10 @@ class GetImgActivity : AppCompatActivity() {
     private fun queryImageStorage() {
             var imageNumber = 0
             var percentageloaded = 0
-            val list = readListFromPref(this, R.string.preference_file_key.toString())
+            val list = readListFromPref(this, R.string.preference_file_key.toString()).toList()
             Log.d(TAG, "queryImageStorage: ROZMIAR ${list.size}")
 
-            val newList: ArrayList<Image> = ArrayList()
+            val newList = readListFromPref(this, R.string.preference_file_key.toString())
 
             val imageProjection = arrayOf(
                 MediaStore.Images.Media.DISPLAY_NAME,
@@ -138,10 +139,29 @@ class GetImgActivity : AppCompatActivity() {
                         //TODO: Dodac skanowanie obrazów z unused stuff
                         if (!list.any { Image -> Image.id == id }) {
 
-                            val image = Image(id, name, size, date, contentUri)
+                            val inputImage =
+                                contentUri.let { InputImage.fromFilePath(this, it.toUri()) }
+                            val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                            val result = recognizer.process(inputImage)
+                                .addOnSuccessListener { visionText ->
+                                    // Task completed successfully
+                                    if (visionText.toString().isNotEmpty()){
+                                        val image = Image(id, name, size, date, contentUri, visionText.text)
+                                        newList.add(0, image)
+                                        Log.d(ContentValues.TAG, "queryImageStorage: SUCCESS ${visionText.text}")
+                                        Log.d("HEEEE", "KURDEE $newList")
+                                        writeListToPref(this, newList, R.string.preference_file_key.toString())
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.d(ContentValues.TAG, "queryImageStorage: FAILURE $e")
+                                    // Task failed with an exception
+                                }
+
+                            /*val image = Image(id, name, size, date, contentUri)
                             newList.add(image)
                             Log.d("HEEEE", "KURDEE $newList")
-                            writeListToPref(this, newList, R.string.preference_file_key.toString())
+                            writeListToPref(this, newList, R.string.preference_file_key.toString())*/
 
                         }
 
