@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import com.example.memefinder.autoRestart.MyExceptionHandler
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizerOptions
@@ -39,6 +40,7 @@ class GetImgActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_get_img)
+
         // check if user has granted permission to access device external storage.
         // if not ask user for access to external storage.
         if (!checkSelfPermission()) {
@@ -90,6 +92,11 @@ class GetImgActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun queryImageStorage() {
+        //code snippet for auto restart - doesn't work for my crashes as they don't throw any exception.
+        /*Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler(this));
+        if (intent.getBooleanExtra("crash", false)) {
+            Toast.makeText(this, "App restarted after crash", Toast.LENGTH_SHORT).show();
+        }*/
             var imageNumber = 0
             var percentageloaded = 0
             val list = readListFromPref(this, R.string.preference_file_key.toString()).toList()
@@ -101,9 +108,8 @@ class GetImgActivity : AppCompatActivity() {
                 MediaStore.Images.Media.DISPLAY_NAME,
                 MediaStore.Images.Media.SIZE,
                 MediaStore.Images.Media.DATE_TAKEN,
-                MediaStore.Images.Media._ID
+                MediaStore.Images.Media._ID,
             )
-
             val imageSortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
             val cursor = contentResolver.query(
@@ -113,11 +119,10 @@ class GetImgActivity : AppCompatActivity() {
                 null,
                 imageSortOrder
             )
-
-            cursor.use {
+            cursor.use { it ->
                 val imagesAmount = cursor?.count
                 //Log.d(TAG, "queryImageStorage: $x")
-                it?.let {
+                it?.let { it ->
                     val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
                     val nameColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
                     val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
@@ -139,30 +144,25 @@ class GetImgActivity : AppCompatActivity() {
                         //TODO: Dodac skanowanie obrazów z unused stuff
                         if (!list.any { Image -> Image.id == id }) {
 
+                            //process the image
                             val inputImage =
                                 contentUri.let { InputImage.fromFilePath(this, it.toUri()) }
                             val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                             val result = recognizer.process(inputImage)
-                                .addOnSuccessListener { visionText ->
+                                result.addOnSuccessListener { visionText ->
                                     // Task completed successfully
                                     if (visionText.toString().isNotEmpty()){
                                         val image = Image(id, name, size, date, contentUri, visionText.text)
-                                        newList.add(0, image)
-                                        Log.d(ContentValues.TAG, "queryImageStorage: SUCCESS ${visionText.text}")
-                                        Log.d("HEEEE", "KURDEE $newList")
+                                        newList.add(image)
+                                        Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
+                                        Log.d(TAG, "queryImageStorage: NEW LIST $newList")
                                         writeListToPref(this, newList, R.string.preference_file_key.toString())
                                     }
                                 }
-                                .addOnFailureListener { e ->
-                                    Log.d(ContentValues.TAG, "queryImageStorage: FAILURE $e")
+                                result.addOnFailureListener { e ->
+                                    Log.d(TAG, "queryImageStorage: FAILURE $e")
                                     // Task failed with an exception
                                 }
-
-                            /*val image = Image(id, name, size, date, contentUri)
-                            newList.add(image)
-                            Log.d("HEEEE", "KURDEE $newList")
-                            writeListToPref(this, newList, R.string.preference_file_key.toString())*/
-
                         }
 
                         imageNumber += 1
