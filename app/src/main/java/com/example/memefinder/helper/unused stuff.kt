@@ -3,7 +3,7 @@ package com.example.memefinder.helper
 /*import android.content.ContentValues
 import android.util.Log
 import androidx.core.net.toUri
-import com.example.memefinder.Image
+import com.example.memefinder.adapter.Image
 import com.example.memefinder.R
 import com.example.memefinder.writeListToPref
 import com.google.mlkit.vision.common.InputImage
@@ -40,3 +40,35 @@ try {
 } catch (e: IOException) {
     e.printStackTrace()
 }*/
+
+
+/*f (imageAdded > 100){
+    imageAdded = 0
+    list = readListFromPref(this, R.string.preference_file_key.toString()).toList()
+    newList = readListFromPref(this, R.string.preference_file_key.toString())
+    Log.d(TAG, "queryImageStorage: xDDDDDDDDDD")
+}*/
+
+
+/*
+    //Doesn't work, don't know why. Perhaps i have to run both activities at once, until all data will be loaded
+    //As for now, i don't use listener, i just load everything at the first start and then only new pictures are loaded.
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        when (key){
+            getString(R.string.preference_file_key) -> {
+                val list = readListFromPref(this, R.string.preference_file_key.toString())
+                Log.d(TAG, "onCreate: JESTT $list")
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        registerSharedPref(this, this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterSharedPref(this, this)
+    }
+ */

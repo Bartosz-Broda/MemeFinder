@@ -3,14 +3,17 @@ package com.example.memefinder.autoRestart
 import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.example.memefinder.MainActivity
 import kotlin.system.exitProcess
 
 
 class MyExceptionHandler(private val activity: Activity) : Thread.UncaughtExceptionHandler {
     override fun uncaughtException(thread: Thread, ex: Throwable) {
+        Log.d(TAG, "uncaughtException: $ex")
         val intent = Intent(activity, MainActivity::class.java)
         intent.putExtra("crash", true)
         intent.addFlags(
