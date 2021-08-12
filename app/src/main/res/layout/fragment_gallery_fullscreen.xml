@@ -19,5 +19,7 @@
         android:padding="10dp"
         android:gravity="center"
         android:layout_alignParentBottom="true"
-        tools:text="Gallery Image Title"/>
+        tools:text="Gallery Image Title"
+        android:clickable="true"
+        android:focusable="true" />
 </RelativeLayout>

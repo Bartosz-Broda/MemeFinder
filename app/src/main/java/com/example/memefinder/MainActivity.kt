@@ -49,7 +49,6 @@ class MainActivity : AppCompatActivity() {
         gallery.onItemClickListener =
             OnItemClickListener { arg0, arg1, position, arg3 ->
                 if (list.isNotEmpty()) {
-                    //Toast.makeText(applicationContext, "position " + position + " " + list[position], Toast.LENGTH_SHORT).show()
                     val bundle = Bundle()
                     bundle.putSerializable("images", list)
                     bundle.putInt("position", position)
@@ -61,6 +60,7 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    //searching menu on toolbar
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.searchbar_menu, menu)
         val item = menu.findItem(R.id.action_search)

@@ -4,4 +4,7 @@
     <string name="preference_newList_key">newImages</string>
     <string name="loading_images">Loading images:</string>
     <string name="loadingstring">loading images</string>
+    <string name="facebook_app_id">Facebook App ID</string>
+    <string name="facebook_client_token">Facebook Client ID</string>
+    <string name="send_to">Hello world!</string>
 </resources>

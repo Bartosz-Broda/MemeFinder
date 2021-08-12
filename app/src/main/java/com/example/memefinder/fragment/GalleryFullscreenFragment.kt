@@ -1,6 +1,11 @@
 package com.example.memefinder.fragment
 
+import android.content.ContentResolver
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +19,12 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.memefinder.R
 import com.example.memefinder.adapter.Image
 import com.example.memefinder.helper.ZoomOutPageTransformer
+
+import android.provider.MediaStore
+import android.util.Log
+import androidx.core.net.toUri
+import com.example.memefinder.MainActivity
+
 
 class GalleryFullscreenFragment : DialogFragment() {
     private var imageList = ArrayList<Image>()
@@ -42,18 +53,24 @@ class GalleryFullscreenFragment : DialogFragment() {
     private fun setCurrentItem(position: Int) {
         viewPager.setCurrentItem(position, false)
     }
+
     // viewpager page change listener
-    internal var viewPagerPageChangeListener: ViewPager.OnPageChangeListener =
+    private var viewPagerPageChangeListener: ViewPager.OnPageChangeListener =
         object : ViewPager.OnPageChangeListener {
             override fun onPageSelected(position: Int) {
                 // set gallery title
                 tvGalleryTitle.text = imageList[position].name
+                tvGalleryTitle.setOnClickListener {
+                    Log.d(TAG, "onPageSelected: click!")
+                    shareOnMessenger(imageList[position])
+                }
             }
             override fun onPageScrolled(arg0: Int, arg1: Float, arg2: Int) {
             }
             override fun onPageScrollStateChanged(arg0: Int) {
             }
         }
+
     // gallery adapter
     inner class GalleryPagerAdapter : PagerAdapter() {
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
@@ -79,4 +96,15 @@ class GalleryFullscreenFragment : DialogFragment() {
             container.removeView(obj as View)
         }
     }
+
+    //using sharesheet for sharing image
+    private fun shareOnMessenger(image: Image){
+        val shareIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, image.uri?.toUri())
+            type = "image/*"
+        }
+        startActivity(Intent.createChooser(shareIntent, resources.getText(R.string.send_to)))
+    }
+
 }
