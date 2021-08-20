@@ -302,3 +302,17 @@ class SplashScreenActivity : AppCompatActivity() {
         }
     }
 }*/
+
+
+/*
+val result = arrayListOf<Deferred<Boolean>>()
+                                    for (i in 0..1){
+                                        result[i] = async { queryImageStorage(2, i) }
+                                    }
+
+                                    if (result.all{it.await()}){
+                                        val intent = Intent(applicationContext, MainActivity::class.java)
+                                        startActivity(intent)
+                                        finish()
+                                    }
+*/

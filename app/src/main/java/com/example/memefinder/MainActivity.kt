@@ -15,10 +15,11 @@ import com.example.memefinder.adapter.Image
 import com.example.memefinder.adapter.ImageAdapter
 import com.example.memefinder.fragment.GalleryFullscreenFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.util.concurrent.Executors
 
 
 class MainActivity : AppCompatActivity() {
-
+    val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,21 +44,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showGallery(list: ArrayList<Image>){
-        val gallery: GridView = findViewById(R.id.galleryGridView)
-        gallery.adapter = ImageAdapter(this, list)
+            val gallery: GridView = findViewById(R.id.galleryGridView)
+            gallery.adapter = ImageAdapter(this, list)
 
-        gallery.onItemClickListener =
-            OnItemClickListener { arg0, arg1, position, arg3 ->
-                if (list.isNotEmpty()) {
-                    val bundle = Bundle()
-                    bundle.putSerializable("images", list)
-                    bundle.putInt("position", position)
-                    val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    val galleryFragment = GalleryFullscreenFragment()
-                    galleryFragment.arguments = bundle
-                    galleryFragment.show(fragmentTransaction, "gallery")
+            gallery.onItemClickListener =
+                OnItemClickListener { arg0, arg1, position, arg3 ->
+                    if (list.isNotEmpty()) {
+                        val bundle = Bundle()
+                        bundle.putSerializable("images", list)
+                        bundle.putInt("position", position)
+                        val fragmentTransaction = supportFragmentManager.beginTransaction()
+                        val galleryFragment = GalleryFullscreenFragment()
+                        galleryFragment.arguments = bundle
+                        galleryFragment.show(fragmentTransaction, "gallery")
+                    }
                 }
-            }
     }
 
     //searching menu on toolbar

@@ -12,6 +12,11 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.signature.ObjectKey
+import com.example.memefinder.R
 import com.example.memefinder.readListFromPref
 
 
@@ -30,6 +35,9 @@ class ImageAdapter(private val context: Context, private val imageList: ArrayLis
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun getView(position: Int, view: View?, viewGroup: ViewGroup?): View {
+
+        val requestOptions = RequestOptions()
+
         val picturesView: ImageView
         if (view == null) {
             picturesView = ImageView(context)
@@ -40,8 +48,14 @@ class ImageAdapter(private val context: Context, private val imageList: ArrayLis
         }
         Log.d(TAG, "getView: $position")
 
-        val thumbnail = imageList[position].uri?.let { (context).contentResolver.loadThumbnail(it.toUri(), Size(480, 480), null) }
-        picturesView.setImageBitmap(thumbnail)
+        //val thumbnail = imageList[position].uri?.let { (context).contentResolver.loadThumbnail(it.toUri(), Size(330, 330), null) }
+        //picturesView.setImageBitmap(thumbnail)
+
+        Glide.with(context)
+            .load(imageList[position].uri?.toUri())
+            .placeholder(R.drawable.ic_baseline_image_24)
+            .thumbnail(Glide.with(context).load(imageList[position].uri?.toUri()).apply(RequestOptions().override(220, 220)))
+            .apply(requestOptions).into(picturesView)
 
         return picturesView
     }

@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MemeFinder"
         android:name=".autoRestart.MyApplication">
-        <activity android:name=".SplashScreenActivity" android:theme="@style/Theme.SplashScreenStyle">
+        <activity android:name=".SplashScreenActivity" android:theme="@style/Theme.SplashScreenStyle" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
