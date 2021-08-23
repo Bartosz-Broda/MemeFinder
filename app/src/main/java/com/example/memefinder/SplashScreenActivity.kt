@@ -226,30 +226,31 @@ class SplashScreenActivity : AppCompatActivity() {
                                         it1.toUri()
                                     )
                                 }
-                                val recognizer =
-                                    TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                                 val result = recognizer.process(inputImage)
 
                                 result.addOnSuccessListener { visionText ->
                                     // Task completed successfully
-                                    val image = Image(
-                                        id,
-                                        name,
-                                        size,
-                                        date,
-                                        contentUri,
-                                        visionText.text.uppercase()
-                                    )
+                                    if(visionText.text.isNotBlank()) {
+                                        val image = Image(
+                                            id,
+                                            name,
+                                            size,
+                                            date,
+                                            contentUri,
+                                            visionText.text.uppercase()
+                                        )
 
-                                    newList.add(0, image)
-                                    Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
-                                    Log.d(TAG, "queryImageStorage: NEW LIST $newList")
-                                    writeListToPref(
-                                        this@SplashScreenActivity,
-                                        newList,
-                                        "images $coroutineNumber"
-                                    )
-                                    imageNumber += 1
+                                        newList.add(0, image)
+                                        Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
+                                        Log.d(TAG, "queryImageStorage: NEW LIST $newList")
+                                        writeListToPref(
+                                            this@SplashScreenActivity,
+                                            newList,
+                                            "images $coroutineNumber"
+                                        )
+                                        imageNumber += 1
+                                    }
                                 }
 
                                 result.addOnFailureListener { e ->

@@ -4,7 +4,6 @@ import android.content.ContentValues.TAG
 import android.content.Context
 import android.os.Build
 import android.util.Log
-import android.util.Size
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
@@ -13,9 +12,7 @@ import android.widget.ImageView
 import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.signature.ObjectKey
 import com.example.memefinder.R
 import com.example.memefinder.readListFromPref
 

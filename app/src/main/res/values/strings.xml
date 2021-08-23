@@ -6,5 +6,5 @@
     <string name="loadingstring">loading images</string>
     <string name="facebook_app_id">Facebook App ID</string>
     <string name="facebook_client_token">Facebook Client ID</string>
-    <string name="send_to">Hello world!</string>
+    <string name="send_to">Share your meme</string>
 </resources>

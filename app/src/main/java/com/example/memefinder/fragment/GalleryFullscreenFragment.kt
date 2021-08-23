@@ -97,7 +97,7 @@ class GalleryFullscreenFragment : DialogFragment() {
         }
     }
 
-    //using sharesheet for sharing image
+    //using share sheet for sharing image
     private fun shareOnMessenger(image: Image){
         val shareIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
