@@ -57,8 +57,8 @@ class MainActivity : AppCompatActivity() {
             gallery.onItemClickListener =
                 OnItemClickListener { arg0, arg1, position, arg3 ->
                     if (list.isNotEmpty()) {
+                        writeListToPref(this, list, "listForFragment")
                         val bundle = Bundle()
-                        bundle.putSerializable("images", list)
                         bundle.putInt("position", position)
                         val fragmentTransaction = supportFragmentManager.beginTransaction()
                         val galleryFragment = GalleryFullscreenFragment()
@@ -86,6 +86,11 @@ class MainActivity : AppCompatActivity() {
             }
         })
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onPause() {
+        Log.d(TAG, "onPause: xDD")
+        super.onPause()
     }
 
 }

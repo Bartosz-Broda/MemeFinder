@@ -3,7 +3,6 @@ package com.example.memefinder
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.memefinder.adapter.Image
-import com.example.memefinder.repositories.ImageRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -12,6 +11,13 @@ fun writeListToPref(context: Context, list: ArrayList<Image>, key: String){
         key, Context.MODE_PRIVATE)
     val listInString = Gson().toJson(list)
     sharedPref.edit().putString(key, listInString).apply()
+}
+
+fun writeStringToPref(context: Context, string: String, key: String){
+    val sharedPref = context.getSharedPreferences(
+        key, Context.MODE_PRIVATE)
+    //val listInString = Gson().toJson(string)
+    sharedPref.edit().putString(key, string).apply()
 }
 
 fun readListFromPref(context: Context, key: String): ArrayList<Image>{
@@ -25,6 +31,14 @@ fun readListFromPref(context: Context, key: String): ArrayList<Image>{
         listFromString = arrayListOf()
     }
     return listFromString
+}
+
+fun readStringFromPref(context: Context, key: String): String? {
+    val sharedPref = context.getSharedPreferences(
+        key, Context.MODE_PRIVATE
+    )
+
+    return sharedPref.getString(key, "")
 }
 
 fun registerSharedPref(context: Context, listener: SharedPreferences.OnSharedPreferenceChangeListener){

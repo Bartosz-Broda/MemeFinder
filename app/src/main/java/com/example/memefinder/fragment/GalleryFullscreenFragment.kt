@@ -22,12 +22,15 @@ import com.example.memefinder.helper.ZoomOutPageTransformer
 
 import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.OnBackPressedCallback
 import androidx.core.net.toUri
 import com.example.memefinder.MainActivity
+import com.example.memefinder.readListFromPref
 
 
 class GalleryFullscreenFragment : DialogFragment() {
     private var imageList = ArrayList<Image>()
+    private val imageListKey: String = "listForFragment"
     private var selectedPosition: Int = 0
     lateinit var tvGalleryTitle: TextView
     lateinit var viewPager: ViewPager
@@ -38,7 +41,7 @@ class GalleryFullscreenFragment : DialogFragment() {
         viewPager = view.findViewById(R.id.viewPager)
         tvGalleryTitle = view.findViewById(R.id.tvGalleryTitle)
         galleryPagerAdapter = GalleryPagerAdapter()
-        imageList = arguments?.getSerializable("images") as ArrayList<Image>
+        imageList = activity?.let { readListFromPref(it, imageListKey) }!!
         selectedPosition = requireArguments().getInt("position")
         viewPager.adapter = galleryPagerAdapter
         viewPager.addOnPageChangeListener(viewPagerPageChangeListener)
@@ -59,7 +62,8 @@ class GalleryFullscreenFragment : DialogFragment() {
         object : ViewPager.OnPageChangeListener {
             override fun onPageSelected(position: Int) {
                 // set gallery title
-                tvGalleryTitle.text = imageList[position].name
+                tvGalleryTitle.text = "Share this meme :)"
+                //tvGalleryTitle.text = imageList[position].name
                 tvGalleryTitle.setOnClickListener {
                     Log.d(TAG, "onPageSelected: click!")
                     shareOnMessenger(imageList[position])
@@ -104,7 +108,24 @@ class GalleryFullscreenFragment : DialogFragment() {
             putExtra(Intent.EXTRA_STREAM, image.uri?.toUri())
             type = "image/*"
         }
+
         startActivity(Intent.createChooser(shareIntent, resources.getText(R.string.send_to)))
+    }
+
+
+    override fun onPause() {
+        //imageList.clear()
+        super.onPause()
+        Log.d(TAG, "onPause: xD")
+    }
+
+    override fun onResume() {
+        //it works quite fast - must be used instead of bundle as list is too big for bundle
+        //imageList = activity?.let { readListFromPref(it, "listForFragment") }!!
+        Log.d(TAG, "onResume: ${imageList.size}")
+        super.onResume()
+
+        Log.d(TAG, "onResume: xD")
     }
 
 }
