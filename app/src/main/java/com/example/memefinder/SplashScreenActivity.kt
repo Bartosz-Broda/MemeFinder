@@ -2,8 +2,11 @@ package com.example.memefinder
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ContentUris
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -15,6 +18,8 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.example.memefinder.adapter.Image
@@ -35,6 +40,10 @@ class SplashScreenActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
+
+        lateinit var notificationManager: NotificationManager
+        createNotificationChannel()
+
         val ivLoup = findViewById<ImageView>(R.id.ivLoupe)
         ivLoup.alpha = 0f
 
@@ -191,6 +200,22 @@ class SplashScreenActivity : AppCompatActivity() {
                 val height = it.getColumnIndexOrThrow(MediaStore.Images.Media.HEIGHT)
                 val width = it.getColumnIndexOrThrow(MediaStore.Images.Media.WIDTH)
 
+                //CODE FOR NOTIFICATION
+                val builder = NotificationCompat.Builder(this, "1").apply {
+                    setContentTitle("Loading memes...")
+                    setContentText("Download in progress")
+                    setSmallIcon(R.drawable.ic_launcher_foreground)
+                    setPriority(NotificationCompat.PRIORITY_LOW)
+                    setOnlyAlertOnce(true)
+                }
+                val PROGRESS_MAX = 100
+                var PROGRESS_CURRENT = 0
+                NotificationManagerCompat.from(this).apply {
+                    // Issue the initial notification with zero progress
+                    builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false)
+                    val notificationId = 1
+                    notify(notificationId, builder.build())
+
                 while (it.moveToNext()) {
                     Log.d(
                         TAG,
@@ -232,15 +257,7 @@ class SplashScreenActivity : AppCompatActivity() {
                                 result.addOnSuccessListener { visionText ->
                                     // Task completed successfully
                                     if(visionText.text.isNotBlank()) {
-                                        val image = Image(
-                                            id,
-                                            name,
-                                            size,
-                                            date,
-                                            contentUri,
-                                            visionText.text.uppercase()
-                                        )
-
+                                        val image = Image(id, name, size, date, contentUri, visionText.text.uppercase())
                                         newList.add(0, image)
                                         Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
                                         Log.d(TAG, "queryImageStorage: NEW LIST $newList")
@@ -273,20 +290,32 @@ class SplashScreenActivity : AppCompatActivity() {
                     //Updating textview with percentage
                     if (imagesAmount != null) {
                         percentageloaded = (imageNumber * 100 / imagesAmount)
+
+                        // Update textview on main thread
+                        updateUIOnMainThread(percentageloaded, imagesAmount)
                         //Log.d(TAG, "queryImageStorage: PROCENTY $imageNumber $imagesAmount")
+
+                        //Code for updating notification
+                        builder.setContentText("${percentageloaded} %" )
+                        PROGRESS_CURRENT = percentageloaded
+                        builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false)
+                        notify(notificationId, builder.build())
+
                     }
 
-                    // Update textview on main thread
-                    updateUIOnMainThread(percentageloaded, imagesAmount)
+                    }
+                    // When done, update the notification one more time to remove the progress bar
+                    builder.setContentText("Download complete")
+                        .setProgress(0, 0, false)
+                    notify(notificationId, builder.build())
 
                     //Log.d(TAG, "queryImageStorage: $imageNumber")
-                    //Działa sharedpreferences. Przy 1 uruchomienu laduje wszystko, przy kolejnych tylko nowe zdjecia. Do zrobienia Listener zeby działało płynnie.
-
                 }
 
             }
 
         }
+
         return true
     }
 
@@ -304,7 +333,30 @@ class SplashScreenActivity : AppCompatActivity() {
     private suspend fun updateUIOnMainThread(percentageloaded: Int, imagesAmount: Int?) {
         withContext(Main) {
             loadingTextView.text =
-                "Loading images: $percentageloaded % \n($imageNumber / $imagesAmount)"
+                "Processing images: $percentageloaded % \n($imageNumber / $imagesAmount)"
         }
+    }
+
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = getString(R.string.channel_name)
+            val descriptionText = getString(R.string.channel_description)
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel("1", name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    override fun onDestroy() {
+        val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        mNotificationManager.cancel(1)
+        super.onDestroy()
     }
 }

@@ -41,6 +41,7 @@ class GalleryFullscreenFragment : DialogFragment() {
         viewPager = view.findViewById(R.id.viewPager)
         tvGalleryTitle = view.findViewById(R.id.tvGalleryTitle)
         galleryPagerAdapter = GalleryPagerAdapter()
+        //reading imagelist from sharedpref as the list was too long for bundle
         imageList = activity?.let { readListFromPref(it, imageListKey) }!!
         selectedPosition = requireArguments().getInt("position")
         viewPager.adapter = galleryPagerAdapter
@@ -127,5 +128,6 @@ class GalleryFullscreenFragment : DialogFragment() {
 
         Log.d(TAG, "onResume: xD")
     }
+
 
 }
