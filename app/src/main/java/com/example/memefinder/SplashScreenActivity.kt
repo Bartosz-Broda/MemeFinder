@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -23,18 +24,32 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.example.memefinder.adapter.Image
+import com.example.memefinder.helper.readListFromPref
+import com.example.memefinder.helper.writeListToPref
+import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.TextRecognizerOptions
+//import com.google.mlkit.vision.text.TextRecognizerOptions
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import java.io.IOException
+import java.util.concurrent.Executors
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class SplashScreenActivity : AppCompatActivity() {
 
     lateinit var loadingTextView: TextView
     var imageNumber = 0
+    //var counter = 0
+    // Create an executor that executes tasks in a background thread.
+    //val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,20 +76,24 @@ class SplashScreenActivity : AppCompatActivity() {
                     //launching coroutines for multi-thread loading.
                     CoroutineScope(IO).launch {
                         val result = arrayListOf<Deferred<Boolean>>()
-                        //launch 3 coroutines and wait for them to finish
+                        //launch 5 coroutines and wait for them to finish
                         for (i in 0..4) {
                             val mResult: Deferred<Boolean> = async { queryImageStorage(5, i) }
                             result.add(mResult)
                         }
 
                         if (result.all { it.await() }) {
-                            Log.d(TAG, "onRequestPermissionsResult: HEHEHEHEHEH")
                             val bigList = ArrayList<Image>()
                             for (i in 1..5) {
-                                val mList = readListFromPref(this@SplashScreenActivity, "images ${i-1}")
+                                val mList =
+                                    readListFromPref(this@SplashScreenActivity, "images ${i - 1}")
                                 bigList.addAll(mList)
                                 bigList.sortByDescending { Image -> Image.date }
-                                writeListToPref(this@SplashScreenActivity, bigList, R.string.preference_file_key.toString())
+                                writeListToPref(
+                                    this@SplashScreenActivity,
+                                    bigList,
+                                    R.string.preference_file_key.toString()
+                                )
                             }
 
                             val intent = Intent(applicationContext, MainActivity::class.java)
@@ -127,20 +146,28 @@ class SplashScreenActivity : AppCompatActivity() {
                                     val result = arrayListOf<Deferred<Boolean>>()
                                     //launch 5 coroutines and wait for them to finish
                                     for (i in 0..4) {
-                                        val mResult: Deferred<Boolean> = async { queryImageStorage(5, i) }
+                                        val mResult: Deferred<Boolean> =
+                                            async { queryImageStorage(5, i) }
                                         result.add(mResult)
                                     }
 
                                     if (result.all { it.await() }) {
-                                        Log.d(TAG, "onRequestPermissionsResult: HEHEHEHEHEH")
                                         val bigList = ArrayList<Image>()
                                         for (i in 1..5) {
-                                            val mList = readListFromPref(this@SplashScreenActivity, "images ${i-1}")
+                                            val mList = readListFromPref(
+                                                this@SplashScreenActivity,
+                                                "images ${i - 1}"
+                                            )
                                             bigList.addAll(mList)
-                                            writeListToPref(this@SplashScreenActivity, bigList, R.string.preference_file_key.toString())
+                                            writeListToPref(
+                                                this@SplashScreenActivity,
+                                                bigList,
+                                                R.string.preference_file_key.toString()
+                                            )
                                         }
 
-                                        val intent = Intent(applicationContext, MainActivity::class.java)
+                                        val intent =
+                                            Intent(applicationContext, MainActivity::class.java)
                                         startActivity(intent)
                                         finish()
                                     }
@@ -165,7 +192,7 @@ class SplashScreenActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun queryImageStorage(coroutineAmount: Int, coroutineNumber: Int): Boolean {
-        var percentageloaded = 0
+        var percentageloaded: Int
         val list = readListFromPref(this@SplashScreenActivity, "images $coroutineNumber").toList()
         Log.d(TAG, "queryImageStorage: ROZMIAR ${list.size}")
 
@@ -216,92 +243,109 @@ class SplashScreenActivity : AppCompatActivity() {
                     val notificationId = 1
                     notify(notificationId, builder.build())
 
-                while (it.moveToNext()) {
-                    Log.d(
-                        TAG,
-                        "queryImageStorage: Hello xD $coroutineNumber, image: ${it.getLong(idColumn)}"
-                    )
-                    Log.d(
-                        TAG,
-                        "queryImageStorage: Hello, this is thread ${Thread.currentThread().name}"
-                    )
+                    while (it.moveToNext()) {
+                        Log.d(
+                            TAG,
+                            "queryImageStorage: Hello xD $coroutineNumber, image: ${
+                                it.getLong(
+                                    idColumn
+                                )
+                            }"
+                        )
+                        Log.d(
+                            TAG,
+                            "queryImageStorage: Hello, this is thread ${Thread.currentThread().name}"
+                        )
 
-                    val id = it.getLong(idColumn)
-                    val name = it.getString(nameColumn)
-                    val size = it.getString(sizeColumn)
-                    val date = it.getString(dateColumn)
-                    val height = it.getInt(height)
-                    val width = it.getInt(width)
-                    val contentUri = ContentUris.withAppendedId(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        id
-                    ).toString()
+                        val id = it.getLong(idColumn)
+                        val name = it.getString(nameColumn)
+                        val size = it.getString(sizeColumn)
+                        val date = it.getString(dateColumn)
+                        val height = it.getInt(height)
+                        val width = it.getInt(width)
+                        val contentUri = ContentUris.withAppendedId(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            id
+                        ).toString()
 
-                    //each coroutine takes care of different image, based on image id modulo coroutine amount.
-                    if (id.toInt() % coroutineAmount == coroutineNumber) {
+                        //each coroutine takes care of different image, based on image id modulo coroutine amount.
+                        if (id.toInt() % coroutineAmount == coroutineNumber) {
 
-                        //make image object and add to list if it's not there already.
-                        if (!list.any { Image -> Image.id == id } && height > 32 && width > 32) {
+                            //make image object and add to list if it's not there already.
+                            if (!list.any { Image -> Image.id == id } && height > 100 && width > 100) {
 
-                            //process the image
-                            kotlin.runCatching {
-                                val inputImage = contentUri.let { it1 ->
-                                    InputImage.fromFilePath(
-                                        this@SplashScreenActivity,
-                                        it1.toUri()
-                                    )
-                                }
-                                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                                val result = recognizer.process(inputImage)
+                                //process the image
+                                kotlin.runCatching {
+                                    val image = withContext(IO) {contentUri.let { it1 -> InputImage.fromFilePath(this@SplashScreenActivity, it1.toUri()) }}
+                                    //val inputImage = contentUri.let { it1 -> InputImage.fromFilePath(this@SplashScreenActivity, it1.toUri()) }
+                                    Log.d(TAG, "queryImageStorage: inputimage: $image")
+                                    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                                    val result = recognizer.process(image)
 
-                                result.addOnSuccessListener { visionText ->
                                     // Task completed successfully
-                                    if(visionText.text.isNotBlank()) {
-                                        val image = Image(id, name, size, date, contentUri, visionText.text.uppercase())
-                                        newList.add(0, image)
-                                        Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
-                                        Log.d(TAG, "queryImageStorage: NEW LIST $newList")
-                                        writeListToPref(
-                                            this@SplashScreenActivity,
-                                            newList,
-                                            "images $coroutineNumber"
-                                        )
-                                        imageNumber += 1
+                                    result.addOnSuccessListener { visionText ->
+
+                                        if (visionText.text.isNotBlank()) {
+                                            val mImage = Image(
+                                                id,
+                                                name,
+                                                size,
+                                                date,
+                                                contentUri,
+                                                visionText.text.uppercase()
+                                            )
+                                            newList.add(0, mImage)
+                                            Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
+                                            Log.d(TAG, "queryImageStorage: NEW LIST $newList")
+                                            writeListToPref(
+                                                this@SplashScreenActivity,
+                                                newList,
+                                                "images $coroutineNumber"
+                                            )
+                                            imageNumber += 1
+                                        }else{imageNumber += 1}
                                     }
-                                }
 
-                                result.addOnFailureListener { e ->
                                     // Task failed with an exception
-                                    Log.d(TAG, "queryImageStorage: FAILURE $e")
+                                    result.addOnFailureListener { e ->
+                                        Log.d(TAG, "queryImageStorage: FAILURE $e")
+                                    }
+
+                                    //Suspending coroutine prevents memory issues associated with queueing too much images to recognizer.process (it's an async call)
+                                    suspendCoroutine <Text> { continuation ->
+                                        result.addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                continuation.resume(task.result)
+                                            } else {
+                                                continuation.resumeWithException(task.exception!!)
+                                            }
+                                        }
+                                    }
+
                                 }
 
-                                //Solves my bug!
-                                Tasks.await(result)
-
+                            } else {
+                                imageNumber += 1
+                                Log.d(TAG, "queryImageStorage: JUZ TAKI JEST")
                             }
-
-                        } else {
-                            imageNumber += 1
-                            Log.d(TAG, "queryImageStorage: JUZ TAKI JEST")
                         }
-                    }
 
 
-                    //Updating textview with percentage
-                    if (imagesAmount != null) {
-                        percentageloaded = (imageNumber * 100 / imagesAmount)
+                        //Updating textview with percentage
+                        if (imagesAmount != null) {
+                            percentageloaded = (imageNumber * 100 / imagesAmount)
 
-                        // Update textview on main thread
-                        updateUIOnMainThread(percentageloaded, imagesAmount)
-                        //Log.d(TAG, "queryImageStorage: PROCENTY $imageNumber $imagesAmount")
+                            // Update textview on main thread
+                            updateUIOnMainThread(percentageloaded, imagesAmount)
+                            //Log.d(TAG, "queryImageStorage: PROCENTY $imageNumber $imagesAmount")
 
-                        //Code for updating notification
-                        builder.setContentText("${percentageloaded} %" )
-                        PROGRESS_CURRENT = percentageloaded
-                        builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false)
-                        notify(notificationId, builder.build())
+                            //Code for updating notification
+                            builder.setContentText("$percentageloaded %")
+                            PROGRESS_CURRENT = percentageloaded
+                            builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false)
+                            notify(notificationId, builder.build())
 
-                    }
+                        }
 
                     }
                     // When done, update the notification one more time to remove the progress bar

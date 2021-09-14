@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import com.example.memefinder.R
 import com.example.memefinder.adapter.Image
-import com.example.memefinder.readListFromPref
+import com.example.memefinder.helper.readListFromPref
 
 class ImageRepository {
     var data: MutableLiveData<List<Image>> = MutableLiveData()

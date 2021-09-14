@@ -13,6 +13,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.memefinder.adapter.Image
 import com.example.memefinder.adapter.ImageAdapter
 import com.example.memefinder.fragment.GalleryFullscreenFragment
+import com.example.memefinder.helper.readListFromPref
+import com.example.memefinder.helper.writeListToPref
 import com.example.memefinder.viewModel.MainActivityViewModel
 
 

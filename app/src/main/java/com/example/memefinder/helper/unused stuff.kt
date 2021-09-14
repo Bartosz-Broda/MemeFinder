@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import com.example.memefinder.adapter.Image
 import com.example.memefinder.R
-import com.example.memefinder.writeListToPref
+import com.example.memefinder.helper.writeListToPref
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizerOptions
@@ -71,4 +71,29 @@ try {
         super.onDestroy()
         unregisterSharedPref(this, this)
     }
+
+
+    object : CountDownTimer(50000, 1000) {
+                            override fun onTick(millisUntilFinished: Long) {
+                                counter++
+                            }
+                            override fun onFinish() {
+                                it.moveToNext()
+                            }
+                        }.start()
+
+
+                                    backgroundExecutor.execute {
+                                        Log.d(TAG, "onTick: (Finish) Start executing")
+
+                                        object : CountDownTimer(50000, 1) {
+                                        override fun onTick(millisUntilFinished: Long) {
+                                            counter++
+                                            Log.d(TAG, "onTick: (Finish) tick counter: $counter")
+                                        }
+                                        override fun onFinish() {
+                                            Log.d(TAG, "onFinish: Finishhh")
+                                            it.moveToNext()
+                                        }
+                                    }.start() }
  */

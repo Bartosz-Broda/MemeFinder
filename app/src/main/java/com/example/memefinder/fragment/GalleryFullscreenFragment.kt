@@ -1,11 +1,8 @@
 package com.example.memefinder.fragment
 
-import android.content.ContentResolver
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -20,12 +17,9 @@ import com.example.memefinder.R
 import com.example.memefinder.adapter.Image
 import com.example.memefinder.helper.ZoomOutPageTransformer
 
-import android.provider.MediaStore
 import android.util.Log
-import androidx.activity.OnBackPressedCallback
 import androidx.core.net.toUri
-import com.example.memefinder.MainActivity
-import com.example.memefinder.readListFromPref
+import com.example.memefinder.helper.readListFromPref
 
 
 class GalleryFullscreenFragment : DialogFragment() {
