@@ -14,10 +14,10 @@ import androidx.core.net.toUri
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.memefinder.R
-import com.example.memefinder.helper.readListFromPref
+import com.example.memefinder.readListFromPref
 
 
-class ImageAdapter(private val context: Context, private val imageList: ArrayList<Image> = readListFromPref(context, R.string.preference_file_key.toString())): BaseAdapter() {
+class ImageAdapter(private val context: Context, private val imageList: ArrayList<Image> = readListFromPref(context, com.example.memefinder.R.string.preference_file_key.toString())): BaseAdapter() {
     override fun getCount(): Int {
         return imageList.count()
     }

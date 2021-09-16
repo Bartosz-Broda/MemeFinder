@@ -9,15 +9,15 @@
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyle"
-        android:layout_width="55dp"
-        android:layout_height="49dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/ivLoupe"
         app:layout_constraintEnd_toEndOf="@+id/ivLoupe"
-        app:layout_constraintHorizontal_bias="0.358"
+        app:layout_constraintHorizontal_bias="0.333"
         app:layout_constraintStart_toStartOf="@+id/ivLoupe"
         app:layout_constraintTop_toTopOf="@+id/ivLoupe"
-        app:layout_constraintVertical_bias="0.357" />
+        app:layout_constraintVertical_bias="0.335" />
 
     <TextView
         android:id="@+id/loadingPercentage"

@@ -1,8 +1,11 @@
 package com.example.memefinder.fragment
 
+import android.content.ContentResolver
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,9 +20,12 @@ import com.example.memefinder.R
 import com.example.memefinder.adapter.Image
 import com.example.memefinder.helper.ZoomOutPageTransformer
 
+import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.OnBackPressedCallback
 import androidx.core.net.toUri
-import com.example.memefinder.helper.readListFromPref
+import com.example.memefinder.MainActivity
+import com.example.memefinder.readListFromPref
 
 
 class GalleryFullscreenFragment : DialogFragment() {
@@ -35,7 +41,6 @@ class GalleryFullscreenFragment : DialogFragment() {
         viewPager = view.findViewById(R.id.viewPager)
         tvGalleryTitle = view.findViewById(R.id.tvGalleryTitle)
         galleryPagerAdapter = GalleryPagerAdapter()
-        //reading imagelist from sharedpref as the list was too long for bundle
         imageList = activity?.let { readListFromPref(it, imageListKey) }!!
         selectedPosition = requireArguments().getInt("position")
         viewPager.adapter = galleryPagerAdapter
@@ -122,6 +127,5 @@ class GalleryFullscreenFragment : DialogFragment() {
 
         Log.d(TAG, "onResume: xD")
     }
-
 
 }

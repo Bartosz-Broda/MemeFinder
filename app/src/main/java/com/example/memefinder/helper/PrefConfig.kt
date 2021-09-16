@@ -1,8 +1,7 @@
-package com.example.memefinder.helper
+package com.example.memefinder
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.memefinder.R
 import com.example.memefinder.adapter.Image
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

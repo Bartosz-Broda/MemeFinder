@@ -2,16 +2,12 @@ package com.example.memefinder
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.ContentUris
 import android.content.ContentValues.TAG
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.CountDownTimer
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -19,26 +15,17 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.example.memefinder.adapter.Image
-import com.example.memefinder.helper.readListFromPref
-import com.example.memefinder.helper.writeListToPref
-import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
-//import com.google.mlkit.vision.text.TextRecognizerOptions
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.text.TextRecognizerOptions
 import kotlinx.coroutines.*
-import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import java.io.IOException
-import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -47,18 +34,11 @@ class SplashScreenActivity : AppCompatActivity() {
 
     lateinit var loadingTextView: TextView
     var imageNumber = 0
-    //var counter = 0
-    // Create an executor that executes tasks in a background thread.
-    //val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
-
-        lateinit var notificationManager: NotificationManager
-        createNotificationChannel()
-
         val ivLoup = findViewById<ImageView>(R.id.ivLoupe)
         ivLoup.alpha = 0f
 
@@ -74,26 +54,22 @@ class SplashScreenActivity : AppCompatActivity() {
                     initUI()
 
                     //launching coroutines for multi-thread loading.
-                    CoroutineScope(IO).launch {
+                    CoroutineScope(Dispatchers.Default).launch {
                         val result = arrayListOf<Deferred<Boolean>>()
-                        //launch 5 coroutines and wait for them to finish
-                        for (i in 0..4) {
-                            val mResult: Deferred<Boolean> = async { queryImageStorage(5, i) }
+                        val cores = Runtime.getRuntime().availableProcessors()
+                        //launch coroutines and wait for them to finish
+                        for (i in 0..cores) {
+                            val mResult: Deferred<Boolean> = async {queryImageStorage(cores+1, i)}
                             result.add(mResult)
                         }
 
                         if (result.all { it.await() }) {
                             val bigList = ArrayList<Image>()
-                            for (i in 1..5) {
-                                val mList =
-                                    readListFromPref(this@SplashScreenActivity, "images ${i - 1}")
+                            for (i in 1..cores+1) {
+                                val mList = readListFromPref(this@SplashScreenActivity, "images ${i-1}")
                                 bigList.addAll(mList)
                                 bigList.sortByDescending { Image -> Image.date }
-                                writeListToPref(
-                                    this@SplashScreenActivity,
-                                    bigList,
-                                    R.string.preference_file_key.toString()
-                                )
+                                writeListToPref(this@SplashScreenActivity, bigList, R.string.preference_file_key.toString())
                             }
 
                             val intent = Intent(applicationContext, MainActivity::class.java)
@@ -142,32 +118,26 @@ class SplashScreenActivity : AppCompatActivity() {
                                 initUI()
 
                                 //launching coroutines for multi-thread loading.
-                                CoroutineScope(IO).launch {
+                                CoroutineScope(Dispatchers.Default).launch {
                                     val result = arrayListOf<Deferred<Boolean>>()
-                                    //launch 5 coroutines and wait for them to finish
-                                    for (i in 0..4) {
-                                        val mResult: Deferred<Boolean> =
-                                            async { queryImageStorage(5, i) }
+                                    val cores = Runtime.getRuntime().availableProcessors()
+
+                                    //launch coroutines and wait for them to finish
+                                    for (i in 0..cores) {
+                                        val mResult: Deferred<Boolean> = async {queryImageStorage(cores+1, i)}
                                         result.add(mResult)
                                     }
 
                                     if (result.all { it.await() }) {
                                         val bigList = ArrayList<Image>()
-                                        for (i in 1..5) {
-                                            val mList = readListFromPref(
-                                                this@SplashScreenActivity,
-                                                "images ${i - 1}"
-                                            )
+                                        for (i in 1..cores+1) {
+                                            val mList = readListFromPref(this@SplashScreenActivity, "images ${i-1}")
                                             bigList.addAll(mList)
-                                            writeListToPref(
-                                                this@SplashScreenActivity,
-                                                bigList,
-                                                R.string.preference_file_key.toString()
-                                            )
+                                            bigList.sortByDescending { Image -> Image.date }
+                                            writeListToPref(this@SplashScreenActivity, bigList, R.string.preference_file_key.toString())
                                         }
 
-                                        val intent =
-                                            Intent(applicationContext, MainActivity::class.java)
+                                        val intent = Intent(applicationContext, MainActivity::class.java)
                                         startActivity(intent)
                                         finish()
                                     }
@@ -192,7 +162,7 @@ class SplashScreenActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun queryImageStorage(coroutineAmount: Int, coroutineNumber: Int): Boolean {
-        var percentageloaded: Int
+        var percentageloaded = 0
         val list = readListFromPref(this@SplashScreenActivity, "images $coroutineNumber").toList()
         Log.d(TAG, "queryImageStorage: ROZMIAR ${list.size}")
 
@@ -224,142 +194,112 @@ class SplashScreenActivity : AppCompatActivity() {
                 val nameColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
                 val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
                 val dateColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
-                val height = it.getColumnIndexOrThrow(MediaStore.Images.Media.HEIGHT)
-                val width = it.getColumnIndexOrThrow(MediaStore.Images.Media.WIDTH)
+                val heightColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.HEIGHT)
+                val widthColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.WIDTH)
 
-                //CODE FOR NOTIFICATION
-                val builder = NotificationCompat.Builder(this, "1").apply {
-                    setContentTitle("Loading memes...")
-                    setContentText("Download in progress")
-                    setSmallIcon(R.drawable.ic_launcher_foreground)
-                    setPriority(NotificationCompat.PRIORITY_LOW)
-                    setOnlyAlertOnce(true)
-                }
-                val PROGRESS_MAX = 100
-                var PROGRESS_CURRENT = 0
-                NotificationManagerCompat.from(this).apply {
-                    // Issue the initial notification with zero progress
-                    builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false)
-                    val notificationId = 1
-                    notify(notificationId, builder.build())
+                while (it.moveToNext()) {
 
-                    while (it.moveToNext()) {
+
+                    val id = it.getLong(idColumn)
+                    val name = it.getString(nameColumn)
+                    val size = it.getString(sizeColumn)
+                    val date = it.getString(dateColumn)
+                    val height = it.getInt(heightColumn)
+                    val width = it.getInt(widthColumn)
+                    val contentUri = ContentUris.withAppendedId(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        id
+                    ).toString()
+
+                    //each coroutine takes care of different image, based on image id modulo coroutine amount.
+                    if (id.toInt() % coroutineAmount == coroutineNumber) {
                         Log.d(
                             TAG,
-                            "queryImageStorage: Hello xD $coroutineNumber, image: ${
-                                it.getLong(
-                                    idColumn
-                                )
-                            }"
+                            "queryImageStorage: Hello xD $coroutineNumber, image: ${it.getLong(idColumn)}"
                         )
                         Log.d(
                             TAG,
                             "queryImageStorage: Hello, this is thread ${Thread.currentThread().name}"
                         )
+                        //make image object and add to list if it's not there already.
+                        if (!list.any { Image -> Image.id == id } && height > 32 && width > 32) {
 
-                        val id = it.getLong(idColumn)
-                        val name = it.getString(nameColumn)
-                        val size = it.getString(sizeColumn)
-                        val date = it.getString(dateColumn)
-                        val height = it.getInt(height)
-                        val width = it.getInt(width)
-                        val contentUri = ContentUris.withAppendedId(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            id
-                        ).toString()
+                            //process the image
+                            kotlin.runCatching {
+                                val inputImage = contentUri.let { it1 ->
+                                    InputImage.fromFilePath(
+                                        this@SplashScreenActivity,
+                                        it1.toUri()
+                                    )
+                                }
+                                val recognizer =
+                                    TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                                val result = recognizer.process(inputImage)
 
-                        //each coroutine takes care of different image, based on image id modulo coroutine amount.
-                        if (id.toInt() % coroutineAmount == coroutineNumber) {
-
-                            //make image object and add to list if it's not there already.
-                            if (!list.any { Image -> Image.id == id } && height > 100 && width > 100) {
-
-                                //process the image
-                                kotlin.runCatching {
-                                    val image = withContext(IO) {contentUri.let { it1 -> InputImage.fromFilePath(this@SplashScreenActivity, it1.toUri()) }}
-                                    //val inputImage = contentUri.let { it1 -> InputImage.fromFilePath(this@SplashScreenActivity, it1.toUri()) }
-                                    Log.d(TAG, "queryImageStorage: inputimage: $image")
-                                    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                                    val result = recognizer.process(image)
-
+                                result.addOnSuccessListener { visionText ->
                                     // Task completed successfully
-                                    result.addOnSuccessListener { visionText ->
+                                    val image = Image(
+                                        id,
+                                        name,
+                                        size,
+                                        date,
+                                        contentUri,
+                                        visionText.text.uppercase()
+                                    )
 
-                                        if (visionText.text.isNotBlank()) {
-                                            val mImage = Image(
-                                                id,
-                                                name,
-                                                size,
-                                                date,
-                                                contentUri,
-                                                visionText.text.uppercase()
-                                            )
-                                            newList.add(0, mImage)
-                                            Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
-                                            Log.d(TAG, "queryImageStorage: NEW LIST $newList")
-                                            writeListToPref(
-                                                this@SplashScreenActivity,
-                                                newList,
-                                                "images $coroutineNumber"
-                                            )
-                                            imageNumber += 1
-                                        }else{imageNumber += 1}
-                                    }
-
-                                    // Task failed with an exception
-                                    result.addOnFailureListener { e ->
-                                        Log.d(TAG, "queryImageStorage: FAILURE $e")
-                                    }
-
-                                    //Suspending coroutine prevents memory issues associated with queueing too much images to recognizer.process (it's an async call)
-                                    suspendCoroutine <Text> { continuation ->
-                                        result.addOnCompleteListener { task ->
-                                            if (task.isSuccessful) {
-                                                continuation.resume(task.result)
-                                            } else {
-                                                continuation.resumeWithException(task.exception!!)
-                                            }
-                                        }
-                                    }
-
+                                    newList.add(0, image)
+                                    Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
+                                    Log.d(TAG, "queryImageStorage: NEW LIST $newList")
+                                    writeListToPref(
+                                        this@SplashScreenActivity,
+                                        newList,
+                                        "images $coroutineNumber"
+                                    )
+                                    imageNumber += 1
                                 }
 
-                            } else {
-                                imageNumber += 1
-                                Log.d(TAG, "queryImageStorage: JUZ TAKI JEST")
+                                result.addOnFailureListener { e ->
+                                    // Task failed with an exception
+                                    Log.d(TAG, "queryImageStorage: FAILURE $e")
+                                }
+
+                                //Suspending coroutine prevents memory issues associated with queueing too much images to recognizer.process (it's an async call)
+                                suspendCoroutine <Text> { continuation ->
+                                    result.addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            continuation.resume(task.result)
+                                        } else {
+                                            continuation.resumeWithException(task.exception!!)
+                                        }
+                                    }
+                                }
+
                             }
+
+                        } else {
+                            imageNumber += 1
+                            Log.d(TAG, "queryImageStorage: JUZ TAKI JEST")
                         }
-
-
-                        //Updating textview with percentage
-                        if (imagesAmount != null) {
-                            percentageloaded = (imageNumber * 100 / imagesAmount)
-
-                            // Update textview on main thread
-                            updateUIOnMainThread(percentageloaded, imagesAmount)
-                            //Log.d(TAG, "queryImageStorage: PROCENTY $imageNumber $imagesAmount")
-
-                            //Code for updating notification
-                            builder.setContentText("$percentageloaded %")
-                            PROGRESS_CURRENT = percentageloaded
-                            builder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false)
-                            notify(notificationId, builder.build())
-
-                        }
-
                     }
-                    // When done, update the notification one more time to remove the progress bar
-                    builder.setContentText("Download complete")
-                        .setProgress(0, 0, false)
-                    notify(notificationId, builder.build())
+
+
+                    //Updating textview with percentage
+                    if (imagesAmount != null) {
+                        percentageloaded = (imageNumber * 100 / imagesAmount)
+                        //Log.d(TAG, "queryImageStorage: PROCENTY $imageNumber $imagesAmount")
+                    }
+
+                    // Update textview on main thread
+                    updateUIOnMainThread(percentageloaded, imagesAmount)
 
                     //Log.d(TAG, "queryImageStorage: $imageNumber")
+                    //Działa sharedpreferences. Przy 1 uruchomienu laduje wszystko, przy kolejnych tylko nowe zdjecia. Do zrobienia Listener zeby działało płynnie.
+
                 }
 
             }
 
         }
-
         return true
     }
 
@@ -377,30 +317,7 @@ class SplashScreenActivity : AppCompatActivity() {
     private suspend fun updateUIOnMainThread(percentageloaded: Int, imagesAmount: Int?) {
         withContext(Main) {
             loadingTextView.text =
-                "Processing images: $percentageloaded % \n($imageNumber / $imagesAmount)"
+                "Loading images: $percentageloaded % \n($imageNumber / $imagesAmount)"
         }
-    }
-
-    private fun createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = getString(R.string.channel_name)
-            val descriptionText = getString(R.string.channel_description)
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel("1", name, importance).apply {
-                description = descriptionText
-            }
-            // Register the channel with the system
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-
-    override fun onDestroy() {
-        val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        mNotificationManager.cancel(1)
-        super.onDestroy()
     }
 }
