@@ -7,4 +7,6 @@
     <string name="facebook_app_id">Facebook App ID</string>
     <string name="facebook_client_token">Facebook Client ID</string>
     <string name="send_to">Share your meme</string>
+    <string name="channel_name">progressbarChannel</string>
+    <string name="channel_description">channel for notification with progressbar</string>
 </resources>

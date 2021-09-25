@@ -145,11 +145,7 @@ class SplashScreenActivity : AppCompatActivity() {
                             }
                         }
                     } else {
-                        Toast.makeText(
-                            this,
-                            "Permission Denied! Cannot load images.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this, "Permission Denied! Cannot load images.", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -198,7 +194,6 @@ class SplashScreenActivity : AppCompatActivity() {
                 val widthColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.WIDTH)
 
                 while (it.moveToNext()) {
-
 
                     val id = it.getLong(idColumn)
                     val name = it.getString(nameColumn)
@@ -292,9 +287,6 @@ class SplashScreenActivity : AppCompatActivity() {
                     // Update textview on main thread
                     updateUIOnMainThread(percentageloaded, imagesAmount)
 
-                    //Log.d(TAG, "queryImageStorage: $imageNumber")
-                    //Działa sharedpreferences. Przy 1 uruchomienu laduje wszystko, przy kolejnych tylko nowe zdjecia. Do zrobienia Listener zeby działało płynnie.
-
                 }
 
             }
@@ -309,8 +301,7 @@ class SplashScreenActivity : AppCompatActivity() {
         loadingTextView = findViewById(R.id.loadingPercentage)
         progressBar.visibility = View.VISIBLE
         loadingTextView.visibility = View.VISIBLE
-        //Toast.makeText(this, "KURWA", Toast.LENGTH_SHORT).show()
-        Log.d(TAG, "initUI: SIEMA")
+        Log.d(TAG, "initUI: UI Initiated!")
     }
 
     @SuppressLint("SetTextI18n")

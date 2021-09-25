@@ -1,16 +1,14 @@
 package com.example.memefinder.fragment
 
-import android.content.ContentResolver
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
@@ -20,26 +18,32 @@ import com.example.memefinder.R
 import com.example.memefinder.adapter.Image
 import com.example.memefinder.helper.ZoomOutPageTransformer
 
-import android.provider.MediaStore
 import android.util.Log
-import androidx.activity.OnBackPressedCallback
+import android.widget.ImageButton
 import androidx.core.net.toUri
-import com.example.memefinder.MainActivity
 import com.example.memefinder.readListFromPref
+import java.io.File
+import java.lang.Exception
+import android.os.Environment
+
+
+
 
 
 class GalleryFullscreenFragment : DialogFragment() {
     private var imageList = ArrayList<Image>()
     private val imageListKey: String = "listForFragment"
     private var selectedPosition: Int = 0
-    lateinit var tvGalleryTitle: TextView
+    lateinit var shareButton: ImageButton
+    lateinit var deleteButton: ImageButton
     lateinit var viewPager: ViewPager
     lateinit var galleryPagerAdapter: GalleryPagerAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_gallery_fullscreen, container, false)
         viewPager = view.findViewById(R.id.viewPager)
-        tvGalleryTitle = view.findViewById(R.id.tvGalleryTitle)
+        shareButton = view.findViewById(R.id.share_img_btn)
+        deleteButton = view.findViewById(R.id.delete_img_btn)
         galleryPagerAdapter = GalleryPagerAdapter()
         imageList = activity?.let { readListFromPref(it, imageListKey) }!!
         selectedPosition = requireArguments().getInt("position")
@@ -61,12 +65,20 @@ class GalleryFullscreenFragment : DialogFragment() {
     private var viewPagerPageChangeListener: ViewPager.OnPageChangeListener =
         object : ViewPager.OnPageChangeListener {
             override fun onPageSelected(position: Int) {
-                // set gallery title
-                tvGalleryTitle.text = "Share this meme :)"
                 //tvGalleryTitle.text = imageList[position].name
-                tvGalleryTitle.setOnClickListener {
-                    Log.d(TAG, "onPageSelected: click!")
-                    shareOnMessenger(imageList[position])
+                shareButton.setOnClickListener {
+                    Log.d(TAG, "onPageSelected: Share!")
+                    shareThroughShareSheet(imageList[position])
+                }
+                deleteButton.setOnClickListener {
+                    Log.d(TAG, "onPageSelected: Delete! :0")
+                    try {
+                        imageList[position].uri?.let { it1 -> deletePhoto(it1) }
+                        imageList.drop(position)
+                        Log.d(TAG, "onPageSelected: Image deleted!")
+                    }catch (e:Exception){
+                        e.printStackTrace()
+                    }
                 }
             }
             override fun onPageScrolled(arg0: Int, arg1: Float, arg2: Int) {
@@ -102,7 +114,7 @@ class GalleryFullscreenFragment : DialogFragment() {
     }
 
     //using share sheet for sharing image
-    private fun shareOnMessenger(image: Image){
+    private fun shareThroughShareSheet(image: Image){
         val shareIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, image.uri?.toUri())
@@ -110,6 +122,23 @@ class GalleryFullscreenFragment : DialogFragment() {
         }
 
         startActivity(Intent.createChooser(shareIntent, resources.getText(R.string.send_to)))
+    }
+
+    private fun deletePhoto(uri: String): Boolean{
+        val fdelete = File(uri.toUri().path!!)
+        return if (fdelete.exists()) {
+            if (fdelete.delete()) {
+                println("file Deleted :" + uri.toUri().path)
+                true
+            } else {
+                println("file not Deleted :" + uri.toUri().path)
+                false
+            }
+        } else{
+            //Doesnt work!
+            Log.d(TAG, "deletePhoto: No such file! URI: $uri")
+            false
+        }
     }
 
 
@@ -120,7 +149,7 @@ class GalleryFullscreenFragment : DialogFragment() {
     }
 
     override fun onResume() {
-        //it works quite fast - must be used instead of bundle as list is too big for bundle
+        //it works quite fast - must be used instead of bundle because list is too big for bundle
         //imageList = activity?.let { readListFromPref(it, "listForFragment") }!!
         Log.d(TAG, "onResume: ${imageList.size}")
         super.onResume()
