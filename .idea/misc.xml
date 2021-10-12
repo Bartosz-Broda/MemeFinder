@@ -3,11 +3,26 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/custom_selector.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/ic_baseline_delete_forever_24.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/ic_baseline_image_24.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/ic_baseline_search_200.xml" value="0.3828125" />
         <entry key="..\:/MemeFinder/app/src/main/res/drawable/ic_baseline_search_24.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/ic_baseline_search_white.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/ic_baseline_share_24.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/share_btn_selected.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/share_btn_selector.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/share_btn_unselected.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/drawable/share_pressed_foreground.xml" value="0.3828125" />
         <entry key="..\:/MemeFinder/app/src/main/res/layout/activity_get_img.xml" value="0.3328804347826087" />
         <entry key="..\:/MemeFinder/app/src/main/res/layout/activity_main.xml" value="0.3070652173913043" />
         <entry key="..\:/MemeFinder/app/src/main/res/layout/activity_splash_screen.xml" value="0.36666666666666664" />
         <entry key="..\:/MemeFinder/app/src/main/res/layout/fragment_gallery_fullscreen.xml" value="0.34103260869565216" />
+        <entry key="..\:/MemeFinder/app/src/main/res/layout/image_fullscreen.xml" value="0.271286231884058" />
+        <entry key="..\:/MemeFinder/app/src/main/res/menu/searchbar_menu.xml" value="0.36666666666666664" />
+        <entry key="..\:/MemeFinder/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.3828125" />
+        <entry key="..\:/MemeFinder/app/src/main/res/mipmap-anydpi-v26/share_pressed.xml" value="0.22135416666666666" />
         <entry key="..\:/Users/XxX/Desktop/MemeFinderOldNew/app/src/main/res/drawable/ic_baseline_search_200.xml" value="0.3828125" />
         <entry key="..\:/Users/XxX/Desktop/MemeFinderOldNew/app/src/main/res/layout/activity_splash_screen.xml" value="0.36666666666666664" />
       </map>

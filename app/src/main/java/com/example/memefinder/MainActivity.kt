@@ -1,6 +1,7 @@
 package com.example.memefinder
 
 import android.content.ContentValues.TAG
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -16,7 +17,7 @@ import com.example.memefinder.fragment.GalleryFullscreenFragment
 import com.example.memefinder.viewModel.MainActivityViewModel
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
     private var viewModel: MainActivityViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +34,6 @@ class MainActivity : AppCompatActivity() {
             showGallery(it as ArrayList<Image>)
             Log.d(TAG, "onCreate: it size: ${it.size}")
         })
-
 
     }
 
@@ -88,9 +88,30 @@ class MainActivity : AppCompatActivity() {
         return super.onCreateOptionsMenu(menu)
     }
 
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        Log.d(TAG, "onSharedPreferencesChanged: CHANGE!")
+        when (key){
+            getString(R.string.preference_file_key) -> {
+                val list = readListFromPref(this, R.string.preference_file_key.toString())
+                showGallery(list)
+                Log.d(TAG, "onSharedPreferencesChanged: CHANGE!")
+            }
+        }
+    }
+
     override fun onPause() {
         Log.d(TAG, "onPause: xDD")
         super.onPause()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        registerSharedPref(this, this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterSharedPref(this, this)
     }
 
 }
