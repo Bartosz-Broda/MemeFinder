@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">MemeFinder</string>
     <string name="preference_file_key">images</string>
+    <string name="preference_newList_key">newImages</string>
     <string name="loading_images">Loading images:</string>
     <string name="loadingstring">loading images</string>
+    <string name="facebook_app_id">Facebook App ID</string>
+    <string name="facebook_client_token">Facebook Client ID</string>
+    <string name="send_to">Share your meme</string>
+    <string name="channel_name">progressbarChannel</string>
+    <string name="channel_description">channel for notification with progressbar</string>
+    <string name="snackbar_message">New Memes!</string>
 </resources>
