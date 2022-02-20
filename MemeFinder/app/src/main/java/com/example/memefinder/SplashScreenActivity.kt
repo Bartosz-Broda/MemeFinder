@@ -47,6 +47,7 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         ivLoup.alpha = 0f
         writeStringToPref(this@SplashScreenActivity, "0", "isGalleryOpen")
 
+        isMainActivityOpen = readStringFromPref(this, "isGalleryOpen")?.toInt() ?:0
 
         // check if user has granted permission to access device external storage.
         // if not ask user for access to external storage.
@@ -58,15 +59,7 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ivLoup.animate().setDuration(1000).alpha(1f).withEndAction {
 
-                    //If there are images loaded in memory, just show gallery
-                    /*val checkList = readListFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString())
-                    if(checkList.isNotEmpty()){
-                        val intent = Intent(applicationContext, MainActivity::class.java)
-                        startActivity(intent)
-                        isMainActivityOpen = 1
-                    }
-                    else{initUI()}*/
-
+                    //Initiating UI of SplashScreen
                     initUI()
 
                     //launching coroutines for multi-thread loading.
@@ -320,12 +313,8 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onClick(p0: View?) {
         if (p0 == GalleryBtn){
-
             saveToMemoryAndOpenGallery()
             writeStringToPref(this@SplashScreenActivity, "1", "isGalleryOpen")
-
-            val intent = Intent(applicationContext, MainActivity::class.java)
-            startActivity(intent)
         }
     }
 
