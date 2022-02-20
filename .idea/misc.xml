@@ -23,12 +23,15 @@
         <entry key="..\:/MemeFinder/app/src/main/res/menu/searchbar_menu.xml" value="0.36666666666666664" />
         <entry key="..\:/MemeFinder/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.3828125" />
         <entry key="..\:/MemeFinder/app/src/main/res/mipmap-anydpi-v26/share_pressed.xml" value="0.22135416666666666" />
+        <entry key="..\:/Users/Bartek/StudioProjects/MemeFinder/app/src/main/res/layout/activity_main.xml" value="0.176" />
+        <entry key="..\:/Users/Bartek/StudioProjects/MemeFinder/app/src/main/res/layout/activity_splash_screen.xml" value="0.4" />
+        <entry key="..\:/Users/Bartek/StudioProjects/MemeFinder/app/src/main/res/layout/fragment_gallery_fullscreen.xml" value="0.2463768115942029" />
         <entry key="..\:/Users/XxX/Desktop/MemeFinderOldNew/app/src/main/res/drawable/ic_baseline_search_200.xml" value="0.3828125" />
         <entry key="..\:/Users/XxX/Desktop/MemeFinderOldNew/app/src/main/res/layout/activity_splash_screen.xml" value="0.36666666666666664" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

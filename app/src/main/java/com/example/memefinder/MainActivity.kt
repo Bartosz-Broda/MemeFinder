@@ -3,6 +3,7 @@ package com.example.memefinder
 import android.content.ContentValues.TAG
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Menu
 import android.widget.AdapterView.OnItemClickListener
@@ -23,6 +24,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         /*val list = readListFromPref(this, R.string.preference_file_key.toString())
         Log.d(TAG, "onCreate: JESSS $list")
         Log.d(TAG, "onCreate: JESE ${list.size}" )*/
@@ -35,6 +37,9 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             Log.d(TAG, "onCreate: it size: ${it.size}")
         })
 
+        /*val mySnackbar = Snackbar.make(findViewById(R.id.myCoordinatorLayout), "snackbar_message", LENGTH_LONG)
+        mySnackbar.show()*/
+        Log.d(TAG, "onClick: String read from SharedPref:" + readStringFromPref(this, "isGalleryOpen"))
     }
 
 
@@ -51,8 +56,12 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     }
 
     private fun showGallery(list: ArrayList<Image>){
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val width = displayMetrics.widthPixels
+
             val gallery: GridView = findViewById(R.id.galleryGridView)
-            gallery.adapter = ImageAdapter(this, list)
+            gallery.adapter = ImageAdapter(this, list, width)
 
             gallery.onItemClickListener =
                 OnItemClickListener { arg0, arg1, position, arg3 ->
@@ -90,11 +99,13 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         Log.d(TAG, "onSharedPreferencesChanged: CHANGE!")
+        val list = readListFromPref(this, R.string.preference_file_key.toString())
+        showGallery(list)
         when (key){
             getString(R.string.preference_file_key) -> {
                 val list = readListFromPref(this, R.string.preference_file_key.toString())
                 showGallery(list)
-                Log.d(TAG, "onSharedPreferencesChanged: CHANGE!")
+                Log.d(TAG, "onSharedPreferencesChanged: CHANGE!!!")
             }
         }
     }
@@ -114,4 +125,9 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         unregisterSharedPref(this, this)
     }
 
+    override fun onBackPressed() {
+        writeStringToPref(this, "0", "isGalleryOpen")
+        super.onBackPressed()
+        finish()
+    }
 }

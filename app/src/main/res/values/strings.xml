@@ -9,4 +9,5 @@
     <string name="send_to">Share your meme</string>
     <string name="channel_name">progressbarChannel</string>
     <string name="channel_description">channel for notification with progressbar</string>
+    <string name="snackbar_message">New Memes!</string>
 </resources>
