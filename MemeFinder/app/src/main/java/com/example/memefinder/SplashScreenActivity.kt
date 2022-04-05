@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.util.Predicate
 import com.example.memefinder.adapter.Image
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
@@ -30,10 +31,13 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class SplashScreenActivity : AppCompatActivity() {
+class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
 
     lateinit var loadingTextView: TextView
+    lateinit var GalleryBtn: Button
     var imageNumber = 0
+    private var isMainActivityOpen = 0
+    var isUIInitiated = 0
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +45,9 @@ class SplashScreenActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash_screen)
         val ivLoup = findViewById<ImageView>(R.id.ivLoupe)
         ivLoup.alpha = 0f
+        writeStringToPref(this@SplashScreenActivity, "0", "isGalleryOpen")
+
+        isMainActivityOpen = readStringFromPref(this, "isGalleryOpen")?.toInt() ?:0
 
         // check if user has granted permission to access device external storage.
         // if not ask user for access to external storage.
@@ -51,6 +58,8 @@ class SplashScreenActivity : AppCompatActivity() {
             // if permission granted, read images from storage.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ivLoup.animate().setDuration(1000).alpha(1f).withEndAction {
+
+                    //Initiating UI of SplashScreen
                     initUI()
 
                     //launching coroutines for multi-thread loading.
@@ -64,21 +73,10 @@ class SplashScreenActivity : AppCompatActivity() {
                         }
 
                         if (result.all { it.await() }) {
-                            val bigList = ArrayList<Image>()
-                            for (i in 1..cores+1) {
-                                val mList = readListFromPref(this@SplashScreenActivity, "images ${i-1}")
-                                bigList.addAll(mList)
-                                bigList.sortByDescending { Image -> Image.date }
-                                writeListToPref(this@SplashScreenActivity, bigList, R.string.preference_file_key.toString())
-                            }
-
-                            val intent = Intent(applicationContext, MainActivity::class.java)
-                            startActivity(intent)
+                            saveToMemoryAndOpenGallery()
                             finish()
                         }
-
                     }
-
                 }
             }
         }
@@ -115,6 +113,9 @@ class SplashScreenActivity : AppCompatActivity() {
                             val ivLoup = findViewById<ImageView>(R.id.ivLoupe)
                             ivLoup.alpha = 0f
                             ivLoup.animate().setDuration(1000).alpha(1f).withEndAction {
+
+
+                                //initiate UI
                                 initUI()
 
                                 //launching coroutines for multi-thread loading.
@@ -129,16 +130,7 @@ class SplashScreenActivity : AppCompatActivity() {
                                     }
 
                                     if (result.all { it.await() }) {
-                                        val bigList = ArrayList<Image>()
-                                        for (i in 1..cores+1) {
-                                            val mList = readListFromPref(this@SplashScreenActivity, "images ${i-1}")
-                                            bigList.addAll(mList)
-                                            bigList.sortByDescending { Image -> Image.date }
-                                            writeListToPref(this@SplashScreenActivity, bigList, R.string.preference_file_key.toString())
-                                        }
-
-                                        val intent = Intent(applicationContext, MainActivity::class.java)
-                                        startActivity(intent)
+                                        saveToMemoryAndOpenGallery()
                                         finish()
                                     }
                                 }
@@ -269,7 +261,6 @@ class SplashScreenActivity : AppCompatActivity() {
                                         }
                                     }
                                 }
-
                             }
 
                         } else {
@@ -286,8 +277,9 @@ class SplashScreenActivity : AppCompatActivity() {
                     }
 
                     // Update textview on main thread
-                    updateUIOnMainThread(percentageloaded, imagesAmount)
-
+                    if (isUIInitiated == 1){
+                        updateUIOnMainThread(percentageloaded, imagesAmount)
+                    }
                 }
 
             }
@@ -297,11 +289,16 @@ class SplashScreenActivity : AppCompatActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun initUI() {
         val progressBar: ProgressBar = findViewById(R.id.progressBar)
         loadingTextView = findViewById(R.id.loadingPercentage)
+        GalleryBtn = findViewById(R.id.gallerybtn)
         progressBar.visibility = View.VISIBLE
         loadingTextView.visibility = View.VISIBLE
+        GalleryBtn.visibility = View.VISIBLE
+        GalleryBtn.setOnClickListener { onClick(GalleryBtn) }
+        isUIInitiated = 1
         Log.d(TAG, "initUI: UI Initiated!")
     }
 
@@ -311,5 +308,46 @@ class SplashScreenActivity : AppCompatActivity() {
             loadingTextView.text =
                 "Loading images: $percentageloaded % \n($imageNumber / $imagesAmount)"
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun onClick(p0: View?) {
+        if (p0 == GalleryBtn){
+            saveToMemoryAndOpenGallery()
+            writeStringToPref(this@SplashScreenActivity, "1", "isGalleryOpen")
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun saveToMemoryAndOpenGallery(){
+        val cores = Runtime.getRuntime().availableProcessors()
+        val bigList = ArrayList<Image>()
+        for (i in 1..cores+1) {
+            val mList = readListFromPref(this@SplashScreenActivity, "images ${i - 1}")
+            bigList.addAll(mList)
+        }
+
+        //deleting images without any text on it - these are not memes for sure
+        val notMemes = Predicate { image: Image -> image.text==""}
+        remove(bigList,notMemes)
+
+        bigList.sortByDescending { Image -> Image.date }
+        writeListToPref(
+            this@SplashScreenActivity,
+            bigList,
+            R.string.preference_file_key.toString()
+        )
+
+        isMainActivityOpen =
+            readStringFromPref(this, "isGalleryOpen")?.toInt() ?:0
+        if(isMainActivityOpen == 0){
+            val intent = Intent(applicationContext, MainActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun <T> remove(list: MutableList<T>, predicate: Predicate<T>) {
+        list.removeIf { x: T -> predicate.test(x) }
     }
 }

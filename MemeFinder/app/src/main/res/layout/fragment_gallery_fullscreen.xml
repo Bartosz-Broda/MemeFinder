@@ -22,7 +22,7 @@
         <ImageButton
             android:id="@+id/delete_img_btn"
             android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:layout_height="wrap_content"
             android:background="@drawable/share_btn_selector"
             android:padding="5dp"
