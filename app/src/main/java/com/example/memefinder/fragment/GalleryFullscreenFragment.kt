@@ -66,10 +66,10 @@ class GalleryFullscreenFragment : DialogFragment() {
                 if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                     deletePhoto(mUri)
                 }
-                Toast.makeText(context, "Photo deleted successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Photo removed successfully", Toast.LENGTH_SHORT).show()
 
             } else {
-                Toast.makeText(context, "Photo couldn't be deleted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Photo couldn't be removed", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -82,6 +82,20 @@ class GalleryFullscreenFragment : DialogFragment() {
     }
     private fun setCurrentItem(position: Int) {
         viewPager.setCurrentItem(position, false)
+
+        shareButton.setOnClickListener {
+            Log.d(TAG, "onPageSelected: Share!")
+            shareThroughShareSheet(imageList[position])
+        }
+        deleteButton.setOnClickListener {
+            Log.d(TAG, "onPageSelected: Delete! :0")
+            try {
+                imageList[position].uri?.let { it1 -> deletePhoto(it1) }
+
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
+        }
     }
 
     // viewpager page change listener
@@ -89,19 +103,7 @@ class GalleryFullscreenFragment : DialogFragment() {
         object : ViewPager.OnPageChangeListener {
             override fun onPageSelected(position: Int) {
                 //tvGalleryTitle.text = imageList[position].name
-                shareButton.setOnClickListener {
-                    Log.d(TAG, "onPageSelected: Share!")
-                    shareThroughShareSheet(imageList[position])
-                }
-                deleteButton.setOnClickListener {
-                    Log.d(TAG, "onPageSelected: Delete! :0")
-                    try {
-                        imageList[position].uri?.let { it1 -> deletePhoto(it1) }
-                        
-                    }catch (e:Exception){
-                        e.printStackTrace()
-                    }
-                }
+
             }
             override fun onPageScrolled(arg0: Int, arg1: Float, arg2: Int) {
             }
@@ -115,6 +117,7 @@ class GalleryFullscreenFragment : DialogFragment() {
             val layoutInflater = activity?.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val view = layoutInflater.inflate(R.layout.image_fullscreen, container, false)
             val image = imageList[position]
+            Log.d(TAG, "instantiateItem: URI IMAGE: " + image.uri)
             // load image
             Glide.with(context!!)
                 .load(image.uri)

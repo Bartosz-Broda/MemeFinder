@@ -19,13 +19,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.util.Predicate
 import com.example.memefinder.adapter.Image
-import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizerOptions
 import kotlinx.coroutines.*
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -34,7 +32,7 @@ import kotlin.coroutines.suspendCoroutine
 class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
 
     lateinit var loadingTextView: TextView
-    lateinit var GalleryBtn: Button
+    private lateinit var galleryButton: Button
     var imageNumber = 0
     private var isMainActivityOpen = 0
     var isUIInitiated = 0
@@ -47,6 +45,7 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         ivLoup.alpha = 0f
         writeStringToPref(this@SplashScreenActivity, "0", "isGalleryOpen")
 
+        isMainActivityOpen = readStringFromPref(this, "isGalleryOpen")?.toInt() ?:0
 
         // check if user has granted permission to access device external storage.
         // if not ask user for access to external storage.
@@ -58,15 +57,7 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ivLoup.animate().setDuration(1000).alpha(1f).withEndAction {
 
-                    //If there are images loaded in memory, just show gallery
-                    /*val checkList = readListFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString())
-                    if(checkList.isNotEmpty()){
-                        val intent = Intent(applicationContext, MainActivity::class.java)
-                        startActivity(intent)
-                        isMainActivityOpen = 1
-                    }
-                    else{initUI()}*/
-
+                    //Initiating UI of SplashScreen
                     initUI()
 
                     //launching coroutines for multi-thread loading.
@@ -160,6 +151,7 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         var percentageloaded = 0
         val list = readListFromPref(this@SplashScreenActivity, "images $coroutineNumber").toList()
         Log.d(TAG, "queryImageStorage: ROZMIAR ${list.size}")
+        val listOfId = arrayListOf<Long>()
 
         val newList = readListFromPref(this@SplashScreenActivity, "images $coroutineNumber")
 
@@ -206,6 +198,8 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
                         id
                     ).toString()
 
+                    listOfId.add(id)
+                    Log.d(TAG, "queryImageStorage: SIZE OF ID LIST ${listOfId.size}")
                     //each coroutine takes care of different image, based on image id modulo coroutine amount.
                     if (id.toInt() % coroutineAmount == coroutineNumber) {
                         Log.d(
@@ -245,11 +239,14 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
                                     newList.add(0, image)
                                     Log.d(TAG, "queryImageStorage: SUCCESS ${visionText.text}")
                                     Log.d(TAG, "queryImageStorage: NEW LIST $newList")
+
+                                    //deleteListFromSharedPref(this@SplashScreenActivity, "images $coroutineNumber")
                                     writeListToPref(
                                         this@SplashScreenActivity,
                                         newList,
                                         "images $coroutineNumber"
                                     )
+
                                     imageNumber += 1
                                 }
 
@@ -289,9 +286,28 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }
 
+
+
             }
 
         }
+
+        //Functions below delete these memes from gallery, which were already removed from memory
+
+        /*val keysOfB = listOfId.map { it } // or listOfB.map { it.key }.also { keysOfB ->
+        newList.removeAll {
+            it.id !in keysOfB
+        }*/
+
+        val notDeletedMeme = Predicate { image: Image -> image.id in listOfId}
+        removeIfNot(newList, notDeletedMeme)
+
+        writeListToPref(
+            this@SplashScreenActivity,
+            newList,
+            "images $coroutineNumber"
+        )
+
         return true
     }
 
@@ -300,11 +316,11 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
     private fun initUI() {
         val progressBar: ProgressBar = findViewById(R.id.progressBar)
         loadingTextView = findViewById(R.id.loadingPercentage)
-        GalleryBtn = findViewById(R.id.gallerybtn)
+        galleryButton = findViewById(R.id.gallerybtn)
         progressBar.visibility = View.VISIBLE
         loadingTextView.visibility = View.VISIBLE
-        GalleryBtn.visibility = View.VISIBLE
-        GalleryBtn.setOnClickListener { onClick(GalleryBtn) }
+        galleryButton.visibility = View.VISIBLE
+        galleryButton.setOnClickListener { onClick(galleryButton) }
         isUIInitiated = 1
         Log.d(TAG, "initUI: UI Initiated!")
     }
@@ -319,13 +335,9 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onClick(p0: View?) {
-        if (p0 == GalleryBtn){
-
+        if (p0 == galleryButton){
             saveToMemoryAndOpenGallery()
             writeStringToPref(this@SplashScreenActivity, "1", "isGalleryOpen")
-
-            val intent = Intent(applicationContext, MainActivity::class.java)
-            startActivity(intent)
         }
     }
 
@@ -343,11 +355,19 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         remove(bigList,notMemes)
 
         bigList.sortByDescending { Image -> Image.date }
+        deleteListFromSharedPref(this, R.string.preference_file_key.toString())
+
+        val list = readListFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString()).toList()
+        Log.d(TAG, "saveToMemoryAndOpenGallery: ROZMIAR ${list.size} ")
+
         writeListToPref(
             this@SplashScreenActivity,
             bigList,
             R.string.preference_file_key.toString()
         )
+
+        val list2 = readListFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString()).toList()
+        Log.d(TAG, "saveToMemoryAndOpenGallery: ROZMIAR 2 ${list2.size} ")
 
         isMainActivityOpen =
             readStringFromPref(this, "isGalleryOpen")?.toInt() ?:0
@@ -360,5 +380,10 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
     @RequiresApi(Build.VERSION_CODES.N)
     fun <T> remove(list: MutableList<T>, predicate: Predicate<T>) {
         list.removeIf { x: T -> predicate.test(x) }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun <T> removeIfNot(list: MutableList<T>, predicate: Predicate<T>) {
+        list.removeIf { x: T -> !predicate.test(x) }
     }
 }

@@ -2,28 +2,20 @@ package com.example.memefinder
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.memefinder.adapter.Image
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-fun writeListToPref(context: Context, list: ArrayList<Image>, key: String){
+fun writeListToPref(context: Context, list: ArrayList<Image>){
     val sharedPref = context.getSharedPreferences(
-        key, Context.MODE_PRIVATE)
+        R.string.preference_file_key.toString(), Context.MODE_PRIVATE)
     val listInString = Gson().toJson(list)
-    sharedPref.edit().putString(key, listInString).apply()
+    sharedPref.edit().putString(R.string.preference_file_key.toString(), listInString).apply()
 }
 
-fun writeStringToPref(context: Context, string: String, key: String){
+fun readListFromPref(context: Context): ArrayList<Image>{
     val sharedPref = context.getSharedPreferences(
-        key, Context.MODE_PRIVATE)
-    //val listInString = Gson().toJson(string)
-    sharedPref.edit().putString(key, string).apply()
-}
-
-fun readListFromPref(context: Context, key: String): ArrayList<Image>{
-    val sharedPref = context.getSharedPreferences(
-        key, Context.MODE_PRIVATE)
-    val jsonString = sharedPref.getString(key, "")
+        R.string.preference_file_key.toString(), Context.MODE_PRIVATE)
+    val jsonString = sharedPref.getString(R.string.preference_file_key.toString(), "")
     val type = object: TypeToken<ArrayList<Image>>() {}.type
 
     var listFromString = Gson().fromJson<ArrayList<Image>>(jsonString, type)
@@ -31,14 +23,6 @@ fun readListFromPref(context: Context, key: String): ArrayList<Image>{
         listFromString = arrayListOf()
     }
     return listFromString
-}
-
-fun readStringFromPref(context: Context, key: String): String? {
-    val sharedPref = context.getSharedPreferences(
-        key, Context.MODE_PRIVATE
-    )
-
-    return sharedPref.getString(key, "")
 }
 
 fun registerSharedPref(context: Context, listener: SharedPreferences.OnSharedPreferenceChangeListener){
@@ -49,10 +33,4 @@ fun registerSharedPref(context: Context, listener: SharedPreferences.OnSharedPre
 fun unregisterSharedPref(context: Context, listener: SharedPreferences.OnSharedPreferenceChangeListener){
     val pref = context.getSharedPreferences(R.string.preference_file_key.toString(), Context.MODE_PRIVATE)
     pref.unregisterOnSharedPreferenceChangeListener(listener)
-}
-
-fun deleteListFromSharedPref(context: Context, key: String){
-    val sharedPref = context.getSharedPreferences(
-        key, Context.MODE_PRIVATE)
-    sharedPref.edit().clear().apply()
 }
