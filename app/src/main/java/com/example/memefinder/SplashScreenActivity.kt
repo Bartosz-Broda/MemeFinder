@@ -149,11 +149,11 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
     @RequiresApi(Build.VERSION_CODES.Q)
     private suspend fun queryImageStorage(coroutineAmount: Int, coroutineNumber: Int): Boolean {
         var percentageloaded = 0
-        val list = readListFromPref(this@SplashScreenActivity, "images $coroutineNumber").toList()
+        val list = readListOfImagesFromPref(this@SplashScreenActivity, "images $coroutineNumber").toList()
         Log.d(TAG, "queryImageStorage: ROZMIAR ${list.size}")
         val listOfId = arrayListOf<Long>()
 
-        val newList = readListFromPref(this@SplashScreenActivity, "images $coroutineNumber")
+        val newList = readListOfImagesFromPref(this@SplashScreenActivity, "images $coroutineNumber")
 
         val imageProjection = arrayOf(
             MediaStore.Images.Media.DISPLAY_NAME,
@@ -241,11 +241,13 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
                                     Log.d(TAG, "queryImageStorage: NEW LIST $newList")
 
                                     //deleteListFromSharedPref(this@SplashScreenActivity, "images $coroutineNumber")
-                                    writeListToPref(
+                                    writeListOfImagesToPref(
                                         this@SplashScreenActivity,
                                         newList,
                                         "images $coroutineNumber"
                                     )
+
+                                    writeListOfIDToPref(this@SplashScreenActivity, listOfId)
 
                                     imageNumber += 1
                                 }
@@ -286,27 +288,18 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }
 
-
-
             }
 
         }
 
-        //Functions below delete these memes from gallery, which were already removed from memory
+        //Functions below delete those memes from gallery, which were already removed from memory
 
         /*val keysOfB = listOfId.map { it } // or listOfB.map { it.key }.also { keysOfB ->
         newList.removeAll {
             it.id !in keysOfB
         }*/
 
-        val notDeletedMeme = Predicate { image: Image -> image.id in listOfId}
-        removeIfNot(newList, notDeletedMeme)
-
-        writeListToPref(
-            this@SplashScreenActivity,
-            newList,
-            "images $coroutineNumber"
-        )
+        removeDeletedMemesFromMemory(this@SplashScreenActivity, newList, listOfId, coroutineNumber)
 
         return true
     }
@@ -346,27 +339,30 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         val cores = Runtime.getRuntime().availableProcessors()
         val bigList = ArrayList<Image>()
         for (i in 1..cores+1) {
-            val mList = readListFromPref(this@SplashScreenActivity, "images ${i - 1}")
+            val mList = readListOfImagesFromPref(this@SplashScreenActivity, "images ${i - 1}")
             bigList.addAll(mList)
         }
 
         //deleting images without any text on it - these are not memes for sure
-        val notMemes = Predicate { image: Image -> image.text==""}
-        remove(bigList,notMemes)
+        removeImagesWithoutText(bigList)
+        /*val notMemes = Predicate { image: Image -> image.text==""}
+        remove(bigList,notMemes)*/
 
         bigList.sortByDescending { Image -> Image.date }
         deleteListFromSharedPref(this, R.string.preference_file_key.toString())
 
-        val list = readListFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString()).toList()
+        //checking if list is empty
+        val list = readListOfImagesFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString()).toList()
         Log.d(TAG, "saveToMemoryAndOpenGallery: ROZMIAR ${list.size} ")
 
-        writeListToPref(
+        writeListOfImagesToPref(
             this@SplashScreenActivity,
             bigList,
             R.string.preference_file_key.toString()
         )
 
-        val list2 = readListFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString()).toList()
+        //checking if list is written successfully
+        val list2 = readListOfImagesFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString()).toList()
         Log.d(TAG, "saveToMemoryAndOpenGallery: ROZMIAR 2 ${list2.size} ")
 
         isMainActivityOpen =
@@ -375,15 +371,5 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
             val intent = Intent(applicationContext, MainActivity::class.java)
             startActivity(intent)
         }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun <T> remove(list: MutableList<T>, predicate: Predicate<T>) {
-        list.removeIf { x: T -> predicate.test(x) }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun <T> removeIfNot(list: MutableList<T>, predicate: Predicate<T>) {
-        list.removeIf { x: T -> !predicate.test(x) }
     }
 }

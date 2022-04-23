@@ -3,7 +3,6 @@ package com.example.memefinder.adapter
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -15,12 +14,11 @@ import androidx.core.net.toUri
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.memefinder.R
-import com.example.memefinder.readListFromPref
-import java.io.IOException
+import com.example.memefinder.readListOfImagesFromPref
 
 class ImageAdapter(
     private val context: Context,
-    private val imageList: ArrayList<Image> = readListFromPref(
+    private val imageList: ArrayList<Image> = readListOfImagesFromPref(
         context,
         R.string.preference_file_key.toString()
     ),
