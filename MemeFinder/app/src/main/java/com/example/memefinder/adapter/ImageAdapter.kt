@@ -14,11 +14,11 @@ import androidx.core.net.toUri
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.memefinder.R
-import com.example.memefinder.readListFromPref
+import com.example.memefinder.readListOfImagesFromPref
 
 class ImageAdapter(
     private val context: Context,
-    private val imageList: ArrayList<Image> = readListFromPref(
+    private val imageList: ArrayList<Image> = readListOfImagesFromPref(
         context,
         R.string.preference_file_key.toString()
     ),
@@ -78,13 +78,36 @@ class ImageAdapter(
         //val thumbnail = imageList[position].uri?.let { (context).contentResolver.loadThumbnail(it.toUri(), Size(330, 330), null) }
         //picturesView.setImageBitmap(thumbnail)
 
+        //checks if the file still exists. Makes the whole app shattering and lagging but works
+        /*val isExist = try {
+            context.contentResolver.openInputStream(imageList[position].uri?.toUri()!!)?.use {
+            }
+            true
+        }
+        catch (e: IOException) {
+            false
+        }
+
+        if(isExist) {
+            Glide.with(context)
+                .load(imageList[position].uri?.toUri())
+                .placeholder(R.drawable.ic_baseline_image_24)
+                .thumbnail(
+                    Glide.with(context).load(imageList[position].uri?.toUri())
+                        .apply(RequestOptions().override(1))
+                )
+                .apply(requestOptions).into(picturesView)
+        }*/
         Glide.with(context)
             .load(imageList[position].uri?.toUri())
             .placeholder(R.drawable.ic_baseline_image_24)
-            .thumbnail(Glide.with(context).load(imageList[position].uri?.toUri()).apply(RequestOptions().override(1)))
+            .thumbnail(
+                Glide.with(context).load(imageList[position].uri?.toUri())
+                    .apply(RequestOptions().override(1))
+            )
             .apply(requestOptions).into(picturesView)
 
-        return picturesView
+            return picturesView
     }
 
 }

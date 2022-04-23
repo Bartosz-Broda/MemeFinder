@@ -5,13 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <androidx.viewpager.widget.ViewPager
+
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black">
 
     </androidx.viewpager.widget.ViewPager>
+
+    <!--<com.github.chrisbanes.photoview.PhotoView
+        android:id="@+id/photo_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />-->
 
     <LinearLayout
         android:layout_width="match_parent"

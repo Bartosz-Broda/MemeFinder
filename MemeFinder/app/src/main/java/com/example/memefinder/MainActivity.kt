@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     }
 
 
-    private fun scanForMemes(text: String, list: ArrayList<Image> = readListFromPref(this, R.string.preference_file_key.toString())): ArrayList<Image> {
+    private fun scanForMemes(text: String, list: ArrayList<Image> = readListOfImagesFromPref(this, R.string.preference_file_key.toString())): ArrayList<Image> {
         viewModel?.setQuery(text)
 
         val filteredList: ArrayList<Image> = ArrayList()
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             gallery.onItemClickListener =
                 OnItemClickListener { arg0, arg1, position, arg3 ->
                     if (list.isNotEmpty()) {
-                        writeListToPref(this, list, "listForFragment")
+                        writeListOfImagesToPref(this, list, "listForFragment")
                         val bundle = Bundle()
                         bundle.putInt("position", position)
                         val fragmentTransaction = supportFragmentManager.beginTransaction()
@@ -99,11 +99,11 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         Log.d(TAG, "onSharedPreferencesChanged: CHANGE!")
-        val list = readListFromPref(this, R.string.preference_file_key.toString())
+        val list = readListOfImagesFromPref(this, R.string.preference_file_key.toString())
         showGallery(list)
         when (key){
             getString(R.string.preference_file_key) -> {
-                val list = readListFromPref(this, R.string.preference_file_key.toString())
+                val list = readListOfImagesFromPref(this, R.string.preference_file_key.toString())
                 showGallery(list)
                 Log.d(TAG, "onSharedPreferencesChanged: CHANGE!!!")
             }
