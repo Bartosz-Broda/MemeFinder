@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <androidx.viewpager.widget.ViewPager
+
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -13,16 +15,23 @@
 
     </androidx.viewpager.widget.ViewPager>
 
+    <!--<com.github.chrisbanes.photoview.PhotoView
+        android:id="@+id/photo_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />-->
+
     <LinearLayout
+        android:id="@+id/layoutForButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:visibility="visible"
         android:layout_alignParentBottom="true">
 
         <ImageButton
             android:id="@+id/delete_img_btn"
             android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:layout_height="wrap_content"
             android:background="@drawable/share_btn_selector"
             android:padding="5dp"
