@@ -390,6 +390,8 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         if(isMainActivityOpen == 0){
             val intent = Intent(applicationContext, MainActivity::class.java)
             startActivity(intent)
+            isMainActivityOpen = 1
+            writeStringToPref(this@SplashScreenActivity, "1", "isGalleryOpen")
         }
     }
 }

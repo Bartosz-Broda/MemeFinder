@@ -99,7 +99,7 @@ class GalleryFullscreenFragment : DialogFragment() {
 
         shareButton.setOnClickListener {
             Log.d(TAG, "onPageSelected: Share!")
-            shareThroughShareSheet(imageList[position])
+            shareThroughShareSheet(mUri)
         }
         deleteButton.setOnClickListener {
             Log.d(TAG, "onPageSelected: Delete! :0")
@@ -166,10 +166,10 @@ class GalleryFullscreenFragment : DialogFragment() {
     }
 
     //using share sheet for sharing image
-    private fun shareThroughShareSheet(image: Image){
+    private fun shareThroughShareSheet(uri: String){
         val shareIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_STREAM, image.uri?.toUri())
+            putExtra(Intent.EXTRA_STREAM, uri.toUri())
             type = "image/*"
         }
 

@@ -11,7 +11,7 @@ android {
         applicationId "com.example.memefinder"
         minSdkVersion 23
         //noinspection OldTargetApi
-        targetSdkVersion 30
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
