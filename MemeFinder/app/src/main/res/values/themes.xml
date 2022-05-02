@@ -28,6 +28,11 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="snackbar_style" parent="@style/Widget.MaterialComponents.Snackbar">
+        <item name="backgroundTint">@color/white</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
 
 
 </resources>

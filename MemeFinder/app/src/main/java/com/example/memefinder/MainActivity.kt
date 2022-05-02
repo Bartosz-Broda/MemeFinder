@@ -1,18 +1,23 @@
 package com.example.memefinder
 
+import android.annotation.SuppressLint
+import android.content.*
 import android.content.ContentValues.TAG
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import android.widget.AdapterView.OnItemClickListener
+import android.widget.FrameLayout
 import android.widget.GridView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -21,15 +26,21 @@ import com.example.memefinder.adapter.Image
 import com.example.memefinder.adapter.ImageAdapter
 import com.example.memefinder.fragment.GalleryFullscreenFragment
 import com.example.memefinder.viewModel.MainActivityViewModel
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
+import com.google.android.material.snackbar.Snackbar
 
+// ODPALIć SNACKBAR PO ZALADOWANIU OBRAZKA
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
     private var viewModel: MainActivityViewModel? = null
 
+    @SuppressLint("ShowToast")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        writeStringToPref(this, "0", "isBroadcastSent")
         /*val list = readListFromPref(this, R.string.preference_file_key.toString())
         Log.d(TAG, "onCreate: JESSS $list")
         Log.d(TAG, "onCreate: JESE ${list.size}" )*/
@@ -43,8 +54,10 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         })
         refreshApp()
 
-        /*val mySnackbar = Snackbar.make(findViewById(R.id.myCoordinatorLayout), "snackbar_message", LENGTH_LONG)
-        mySnackbar.show()*/
+
+        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
+        localBroadcastManager.registerReceiver(receiver, IntentFilter("new meme"))
+
         Log.d(TAG, "onClick: String read from SharedPref:" + readStringFromPref(this, "isGalleryOpen"))
     }
 
@@ -120,16 +133,47 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         val swipeToRefresh = findViewById<SwipeRefreshLayout>(R.id.swipeToRefresh)
         swipeToRefresh.setOnRefreshListener {
             sendBroadcast()
-            Toast.makeText(this, "REFRESH!", Toast.LENGTH_SHORT).show()
+            writeStringToPref(this, "0", "isBroadcastSent")
+            //Toast.makeText(this, "Memes refreshed", Toast.LENGTH_SHORT).show()
             swipeToRefresh.isRefreshing = false
         }
     }
 
-    fun sendBroadcast() {
-        val intent = Intent("save memes")
+    //send info about refreshing memes
+    private fun sendBroadcast() {
+        val intent = Intent("refresh memes")
         intent.putExtra("EdRfTg123", "SAVE!")
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
         Log.d(TAG, "sendBroadcast: SENT")
+    }
+
+    //receiver for displaying info(snackbar) about new memes
+    private var receiver: BroadcastReceiver = object : BroadcastReceiver() {
+        @RequiresApi(Build.VERSION_CODES.N)
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent != null) {
+                Log.d(TAG, "onReceive: Broadcast received, intent != null")
+                val str = intent.getStringExtra("EdRfTg1234")
+
+                if(str.equals("Show Snackbar!")){
+                    /*val mySnackbar = Snackbar.make(findViewById(R.id.myCoordinatorLayout), "snackbar_message", LENGTH_LONG)
+                    mySnackbar.show()*/
+                    showSnackbar()
+                }
+            }
+            Log.d(TAG, "onReceive: Broadcast received, intent == null")
+        }
+    }
+
+    private fun showSnackbar(){
+        val snackBarView = Snackbar.make(findViewById(R.id.myCoordinatorLayout), "I found new memes! Swipe down to refresh" , 10000)
+        val view = snackBarView.view
+        val params = view.layoutParams as CoordinatorLayout.LayoutParams
+        params.gravity = Gravity.TOP
+        view.layoutParams = params
+        //view.background = ContextCompat.getDrawable(this,R.drawable.custom_drawable) // for custom background
+        snackBarView.animationMode = BaseTransientBottomBar.ANIMATION_MODE_FADE
+        snackBarView.show()
     }
 
     override fun onPause() {

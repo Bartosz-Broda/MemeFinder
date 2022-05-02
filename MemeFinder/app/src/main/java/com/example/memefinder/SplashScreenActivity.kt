@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.core.util.Predicate
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.memefinder.adapter.Image
 import com.google.mlkit.vision.common.InputImage
@@ -35,6 +34,7 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var galleryButton: Button
     var imageNumber = 0
     private var isMainActivityOpen = 0
+    private var isBroadcastSent = 0
     var isUIInitiated = 0
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -44,12 +44,14 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         val ivLoup = findViewById<ImageView>(R.id.ivLoupe)
         ivLoup.alpha = 0f
         writeStringToPref(this@SplashScreenActivity, "0", "isGalleryOpen")
+        writeStringToPref(this@SplashScreenActivity, "0", "isBroadcastSent")
 
         isMainActivityOpen = readStringFromPref(this, "isGalleryOpen")?.toInt() ?:0
+        isBroadcastSent = readStringFromPref(this, "isBroadcastSent")?.toInt() ?:0
 
         // register broadcast manager
         val localBroadcastManager = LocalBroadcastManager.getInstance(this)
-        localBroadcastManager.registerReceiver(receiver, IntentFilter("save memes"))
+        localBroadcastManager.registerReceiver(receiver, IntentFilter("refresh memes"))
 
         // check if user has granted permission to access device external storage.
         // if not ask user for access to external storage.
@@ -289,6 +291,17 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
                                 }
                             }
 
+                            //New meme loaded into memory
+                            if(isMainActivityOpen == 1) {
+                                isBroadcastSent = readStringFromPref(this, "isBroadcastSent")?.toInt() ?: 0
+                                Log.d(TAG, "saveToMemoryAndOpenGallery: BROADCAST: $isBroadcastSent")
+                                if (isBroadcastSent == 0) {
+                                    sendBroadcast()
+                                    isBroadcastSent = 1
+                                    writeStringToPref(this@SplashScreenActivity, "1", "isBroadcastSent")
+                                }
+                            }
+
                         } else {
                             imageNumber += 1
                             Log.d(TAG, "queryImageStorage: JUZ TAKI JEST")
@@ -346,6 +359,16 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+    //broadcast about new meme loaded
+    private fun sendBroadcast() {
+        isBroadcastSent = 1
+        writeStringToPref(this@SplashScreenActivity, "1", "isBroadcastSent")
+        val intent = Intent("new meme")
+        intent.putExtra("EdRfTg1234", "Show Snackbar!")
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        Log.d(TAG, "sendBroadcast: SENT!!!")
+    }
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onClick(p0: View?) {
         if (p0 == galleryButton){
@@ -374,6 +397,7 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
         //checking if list is empty
         val list = readListOfImagesFromPref(this@SplashScreenActivity, R.string.preference_file_key.toString()).toList()
         Log.d(TAG, "saveToMemoryAndOpenGallery: ROZMIAR ${list.size} ")
+
 
         writeListOfImagesToPref(
             this@SplashScreenActivity,
