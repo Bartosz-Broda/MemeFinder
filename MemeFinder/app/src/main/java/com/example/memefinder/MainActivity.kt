@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     }
 
     private fun showSnackbar(){
-        val snackBarView = Snackbar.make(findViewById(R.id.myCoordinatorLayout), "I found new memes! Swipe down to refresh" , 10000)
+        val snackBarView = Snackbar.make(findViewById(R.id.myCoordinatorLayout), "I found new memes! Swipe down to refresh" , 8000)
         val view = snackBarView.view
         val params = view.layoutParams as CoordinatorLayout.LayoutParams
         params.gravity = Gravity.TOP

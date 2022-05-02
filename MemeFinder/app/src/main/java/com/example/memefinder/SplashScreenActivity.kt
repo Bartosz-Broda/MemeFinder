@@ -77,7 +77,22 @@ class SplashScreenActivity : AppCompatActivity(), View.OnClickListener {
                         }
 
                         if (result.all { it.await() }) {
-                            saveToMemoryAndOpenGallery()
+                            //New meme loaded into memory
+                            if(isMainActivityOpen == 1) {
+                                isBroadcastSent = readStringFromPref(this@SplashScreenActivity, "isBroadcastSent")?.toInt() ?: 1
+                                Log.d(TAG, "saveToMemoryAndOpenGallery: BROADCAST: $isBroadcastSent")
+                                if (isBroadcastSent == 1) {
+                                    sendBroadcast()
+                                    isBroadcastSent = 1
+                                    writeStringToPref(
+                                        this@SplashScreenActivity,
+                                        "1",
+                                        "isBroadcastSent"
+                                    )
+                                }
+                            }else{
+                                saveToMemoryAndOpenGallery()
+                            }
                             finish()
                         }
                     }
